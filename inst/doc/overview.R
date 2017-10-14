@@ -13,38 +13,52 @@ library(rstanarm)
 # Load psycho (at the beginning of every script)
 library(psycho)
 
-## ---- out.width=800, echo = FALSE, eval = TRUE, fig.align='center'-------
+## ---- out.width=700, echo = FALSE, eval = TRUE, fig.align='center'-------
 knitr::include_graphics("images/workflow.PNG")
 
-## ---- fig.width=8, eval = TRUE, fig.align='center'-----------------------
+## ---- fig.width=8, eval = TRUE, fig.align='center', results='hide'-------
 library(psycho)
 
 df <- iris
 
-cor <- psycho::correlation(df)
+cor <- psycho::correlation(df, 
+                           type = "full",
+                           method = "pearson",
+                           adjust = "none")
 
-cortable <- print(cor)
+print(cor)
 
-# You can save it using write.csv(cortable, "correlation_table.csv")
-# Or diplay it using View(cortable)
+## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
+kable(print(cor))
 
-kable(cortable)
-
-
-# You can also plot it
+## ---- fig.width=8, eval = TRUE, fig.align='center'-----------------------
 cor$plot()
 
-## ---- out.width=8, eval = TRUE, fig.align='center'-----------------------
+## ---- fig.width=8, eval = TRUE, fig.align='center', results='hide'-------
+library(psycho)
+
+df <- iris
+
+pcor <- psycho::correlation(df, 
+                           type = "partial",
+                           method = "pearson",
+                           adjust = "bonferroni")
+
+print(pcor)
+
+## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
+kable(print(pcor))
+
+## ---- out.width=8, eval = TRUE, fig.align='center', results='markup'-----
 library(psycho)
 library(tidyverse)
 
-# Normalize all numeric variables
-df <- iris %>% 
-  psycho::normalize()
+iris %>% 
+  select(Species, Sepal.Length, Petal.Length) %>% 
+  psycho::normalize() %>% 
+  summary()
 
-summary(df)
-
-## ---- fig.width=8, eval = TRUE, fig.align='center'-----------------------
+## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'----
 library(psycho)
 
 results <- psycho::assess(124, mean=100, sd=15)
@@ -55,31 +69,69 @@ print(results)
 # Plot it
 plot(results)
 
-## ---- fig.width=8, eval = TRUE, fig.align='center'-----------------------
-library(psycho)
-library(rstanarm)
+## ---- results='hide'-----------------------------------------------------
+set.seed(666)
+df <- data.frame(Participant = as.factor(rep(1:25, each = 4)), 
+                 Item = rep_len(c("i1", "i2", "i3", "i4"), 100), 
+                 Condition = rep_len(c("A", "B", "A", "B", "B"), 20), 
+                 Error = as.factor(sample(c(0, 1), 100, replace = T)),
+                 RT = rnorm(100, 30, .2), 
+                 Stress = runif(100, 3, 5))
 
-# Create dataframe
-df <- data.frame(Participant = as.factor(rep(1:50,each=2)), Condition = base::rep_len(c("A", "B"), 100), V1 = rnorm(100, 30, .2), V2 = runif(100, 3, 5))
+# Normalize the numeric variables.
 df <- psycho::normalize(df)
 
-# Show dataframe
+# Take a look  at the first 10 rows
+head(df)
+
+## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
 kable(head(df))
 
+## ----message=FALSE, warning=FALSE, results='markup'----------------------
+# Format data
+df_for_anova <- df %>% 
+  dplyr::group_by(Participant, Condition) %>% 
+  dplyr::summarise(RT = mean(RT))
 
-## ---- eval=TRUE, fig.align='center', fig.width=8, message=FALSE, results="hide"----
-# Fit bayesian mixed model
-fit <- rstanarm::stan_lmer(V1 ~ Condition / V2 + (1|Participant), data=df)
+# Run the anova
+anova <- aov(RT ~ Condition + Error(Participant), df_for_anova)
+summary(anova)
 
-## ---- fig.width=8, eval = TRUE, fig.align='center'-----------------------
+## ----fig.align='center', message=FALSE, warning=FALSE, val=TRUE, results='markup'----
+library(lmerTest)
+
+fit <- lmerTest::lmer(RT ~ Condition + (1|Participant) + (1|Item), data=df)
+
+# Traditional output
+summary(fit)
+
+## ---- message=FALSE, results="hide"--------------------------------------
 results <- psycho::analyze(fit)
 
-# Print summary
-kable(summary(results))
+# We can extract a formatted summary table
+summary(results, round = 2)
 
-# Show text
+## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
+kable(summary(results, round = 2))
+
+## ---- results='markup'---------------------------------------------------
 print(results)
 
-# Plot effects
+## ----fig.align='center', message=FALSE, warning=FALSE, val=TRUE, results='hide'----
+library(rstanarm)
+
+fit <- rstanarm::stan_lmer(RT ~ Condition + (1|Participant) + (1|Item), data=df)
+
+# Traditional output
+results <- psycho::analyze(fit, Effect_Size=T)
+summary(results, round=2)
+
+## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
+kable(summary(results, round = 2))
+
+## ---- results='markup'---------------------------------------------------
+print(results)
+
+## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'----
 plot(results)
 

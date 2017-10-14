@@ -7,13 +7,20 @@
 # psycho
 [![Build Status](https://travis-ci.org/neuropsychology/psycho.R.svg?branch=master)](https://travis-ci.org/neuropsychology/psycho.R)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Dependency Status](https://dependencyci.com/github/neuropsychology/psycho.R/badge)](https://dependencyci.com/github/neuropsychology/psycho.R)
+[![CRAN downloads total](http://cranlogs.r-pkg.org/badges/grand-total/psycho)](https://CRAN.R-project.org/package=psycho)
 [![Build status](https://ci.appveyor.com/api/projects/status/08mg1fshh5iqx53b?svg=true)](https://ci.appveyor.com/project/DominiqueMakowski/psycho-r)
 [![codecov](https://codecov.io/gh/neuropsychology/psycho.R/branch/master/graph/badge.svg)](https://codecov.io/gh/neuropsychology/psycho.R)
+[![Dependency Status](https://dependencyci.com/github/neuropsychology/psycho.R/badge)](https://dependencyci.com/github/neuropsychology/psycho.R)
+[![CRAN downloads month](https://cranlogs.r-pkg.org/badges/psycho)](https://CRAN.R-project.org/package=psycho)
 
-|Name|NeuroKit|
+
+
+
+|Name|psycho|
 |----------------|---|
-|Documentation|[![](https://img.shields.io/badge/docs-Building-orange.svg?colorB=FF5722)](https://github.com/neuropsychology/psycho.R/blob/master/vignettes/overview.Rmd)|
+|Stable|[![CRAN](https://www.r-pkg.org/badges/version/psycho)](https://CRAN.R-project.org/package=psycho)|
+|Documentation|[![Rdoc](http://www.rdocumentation.org/badges/version/psycho)](http://www.rdocumentation.org/packages/psycho)|
+|Examples|[![](https://img.shields.io/badge/vignettes-0.0.2-orange.svg?colorB=FF5722)](https://CRAN.R-project.org/package=psycho/vignettes/overview.html)|
 |Questions|[![](https://img.shields.io/badge/issue-create-purple.svg?colorB=FF9800)](https://github.com/neuropsychology/psycho.R/issues)|
 |Authors|[![](https://img.shields.io/badge/CV-D._Makowski-purple.svg?colorB=9C27B0)](https://dominiquemakowski.github.io/)|
 
@@ -38,7 +45,7 @@ Want to get involved in the developpment of an open-source software and improve 
 
 ## General Workflow
 
-The package revolves around the `psychobject`. Main functions from the package return this type, and the `analyze()` function transforms other R objects (*for now, only `stan_lmer` type*) into psychobjects. Four functions can then be applied on a psychobject: `summary()`, `print()`, `plot()` and `values()`.
+The package revolves around the `psychobject`. Main functions from the package return this type, and the `analyze()` function transforms other R objects into psychobjects. Four functions can then be applied on a psychobject: `summary()`, `print()`, `plot()` and `values()`.
 
 
 
@@ -47,11 +54,16 @@ The package revolves around the `psychobject`. Main functions from the package r
 
 ## Installation
 
-Open R and run the following:
+- To get the stable version from CRAN, run the following commands in your R console:
 
+```R
+install.packages("psycho")
+library("psycho")
+```
+
+- To get the latest development version, run the following:
 ```R
 install.packages("devtools")
 library("devtools")
 install_github("neuropsychology/psycho.R")
 library("psycho")
-```
