@@ -32,7 +32,7 @@ print(cor)
 kable(print(cor))
 
 ## ---- fig.width=8, eval = TRUE, fig.align='center'-----------------------
-cor$plot()
+plot(cor)
 
 ## ---- fig.width=8, eval = TRUE, fig.align='center', results='hide'-------
 library(psycho)
@@ -67,6 +67,26 @@ results <- psycho::assess(124, mean=100, sd=15)
 print(results)
 
 # Plot it
+plot(results)
+
+## ----echo=FALSE, message=FALSE, warning=FALSE, results='hide'------------
+results <- attitude %>%
+  select_if(is.numeric) %>% 
+  psycho::n_factors()
+
+# Get a summary
+summary(results)
+
+## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
+kable(summary(results))
+
+## ----echo=FALSE, message=FALSE, warning=FALSE, results='hide'------------
+psycho::values(results)$methods
+
+## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
+kable(psycho::values(results)$methods)
+
+## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'----
 plot(results)
 
 ## ---- results='hide'-----------------------------------------------------
@@ -123,7 +143,7 @@ library(rstanarm)
 fit <- rstanarm::stan_lmer(RT ~ Condition + (1|Participant) + (1|Item), data=df)
 
 # Traditional output
-results <- psycho::analyze(fit, Effect_Size=T)
+results <- psycho::analyze(fit, effsize=T)
 summary(results, round=2)
 
 ## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------

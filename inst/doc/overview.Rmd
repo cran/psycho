@@ -8,10 +8,11 @@ author:
 date: "`r Sys.Date()`"
 tags: [r, psychology, neuroscience]
 abstract: |
-  Psycho is an R package that aims at providing tools for psychologists, neuropsychologists and neuroscientists, to transform statistical outputs into something readable that can be, almost directly, copied and pasted into a report. It also implements various functions useful in psychological science, such as correlation matrices, assessment plot creation or normalization. The package revolves around the psychobject. Main functions from the package return this type, and the analyze() function transforms other R objects (for now, only stan_lmer type) into psychobjects. Four functions can then be applied on a psychobject: summary(), print(), plot() and values(). Contrary to many other packages which goal is to produce statistical analyzes, `psycho`'s goal is to fill the gap between statistical R output and statistical report writing, with a focus on APA formatting guidelines. Complex outputs, such as those of Bayesian linear models, are automatically transformed into readable text, important values are extracted and plots are drawn to illustrate the effects. Thus, the results can easily be incorporated into shareable reports and publications, saving time and preventing errors for better, reproducible, science.
+  Psycho is an R package that aims at providing tools for psychologists, neuropsychologists and neuroscientists, to transform statistical outputs into something readable that can be, almost directly, copied and pasted into a report. It also implements various functions useful in psychological science, such as correlation matrices, assessment plot creation or normalization. The package revolves around the psychobject. Main functions from the package return this type, and the `analyze()` function transforms other R objects into psychobjects. Four functions can then be applied on a psychobject: `summary()`, `print()`, `plot()` and `values()`. Contrary to many other packages which goal is to produce statistical analyzes, `psycho` aims at filling the gap between statistical R outputs and statistical report writing, with a focus on APA formatting guidelines, to enhance the standardization of results reporting. Complex outputs, such as those of Bayesian and frequentist mixed models, are automatically transformed into readable text, tables, and plots that illustrate the effects. Thus, the results can easily be incorporated into shareable reports and publications, promoting data exploration, saving time and preventing errors for better, reproducible, science. 
 vignette: >
   %\VignetteIndexEntry{Overview}
   %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteDepends{tidyverse}
   \usepackage[utf8]{inputenc}
 ---
 
@@ -86,7 +87,7 @@ You can save this correlation matrix using `write.csv(print(cor), "correlation_t
 
 You can also draw a quick visualization:
 ```{r, fig.width=8, eval = TRUE, fig.align='center'}
-cor$plot()
+plot(cor)
 ```
  
 
@@ -149,16 +150,52 @@ print(results)
 plot(results)
 ```
 
+------
 
+## How many factors/components to retain?
+
+The `n_factors()` function is useful in before running principal component (PCA) or factor (FA) analysis. As many statistical methods exists to that purpose, this function gathers them together and gives an overview on the most frequent result. It also draw a nice plot with the eigenvalues and the proportion of explained  variance.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+results <- attitude %>%
+  select_if(is.numeric) %>% 
+  psycho::n_factors()
+
+# Get a summary
+summary(results)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+kable(summary(results))
+```
+
+We can also extract the final result (the optimal number of factors) for each method:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+psycho::values(results)$methods
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+kable(psycho::values(results)$methods)
+```
+
+And, of course, plot it :)
+
+```{r, fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'}
+plot(results)
+```
+     
+     
 ------
 
 ## Analyze the Mixed-Modelling Framework
 
-This is possibly the most important function of the `psycho` package. Its goal is to transform complex outputs of complex statistical routines into something readable, interpretable, and formatted. It is designed to work with frequentist and Bayesian mixed models, which is the central statistical routine used in psychological science.
+This is possibly the most important function of the `psycho` package. Its goal is to transform complex outputs of complex statistical routines into something readable, interpretable, and formatted. It is designed to work with frequentist and Bayesian mixed models, which is the central statistical method for psychological science.
 
 ### Data Creation
 
-Let's start by creating a dataframe similar to those find in psychological science.
+Let's start by creating a dataframe similar to those found in psychological science.
 
 ```{r, results='hide'}
 set.seed(666)
@@ -180,11 +217,11 @@ head(df)
 kable(head(df))
 ```
 
-This dataframe contains the data of 25 participants (labelled from 1 to 25), that saw 4 items (i1-i4) in two conditions (A and B). We measured, for each item, if the response was correct or not (Error), its reaction time (RT) and the stress associated with the trial.
+This dataframe contains the data of 25 participants (labelled from 1 to 25). Each saw 4 different items (i1-i4) in two conditions (A and B). We measured, for each item, if the response was correct or not (Error), its reaction time (RT) and the stress associated with the trial.
 
 ### Ancient Approach
 
-In order to investigate the effect of the condition on the reaction time RT, the traditional, ancient and obsolete routines are to compute the mean for each participant, and run an ANOVA.
+In order to investigate the effect of the condition on the reaction time RT, the traditional, ancient and obsolete routine is 1) to compute the mean for each participant, and 2) run an ANOVA.
 
 ```{r message=FALSE, warning=FALSE, results='markup'}
 # Format data
@@ -197,7 +234,7 @@ anova <- aov(RT ~ Condition + Error(Participant), df_for_anova)
 summary(anova)
 ```
 
-As we can see, the effect of condition is not significant (unsuprisingly, as data was generated randomly). One of the many flaws of this approach is that we lose information about intra-individual and item-related variability.
+As we can see, the effect of the condition is not significant (unsuprisingly, as data was generated randomly). One of the many flaws of this approach is that we lose information about intra-individual and item-related variability.
 
 
 ### Mixed Linear Regressions (lme4, lmerTest)
@@ -235,7 +272,7 @@ print(results)
 
 ### Bayesian Mixed Linear Regressions (rstanarm)
 
-However, as the frequentist framework is criticized, it is advised to switch to a Bayesian framework. However, the interpretation of these models is even more complex and unfamiliar to regular psychologists. But stay calm, because `analyze()` handles this difficulty for you. 
+However, as the frequentist framework is criticized, it is advised to switch to the Bayesian framework. Unfortunately, interpretation of these models remain unfamiliar to regular psychologists. But stay calm, because `analyze()` handles this for you. 
 
 ```{r fig.align='center', message=FALSE, warning=FALSE, val=TRUE, results='hide'}
 library(rstanarm)
@@ -243,7 +280,7 @@ library(rstanarm)
 fit <- rstanarm::stan_lmer(RT ~ Condition + (1|Participant) + (1|Item), data=df)
 
 # Traditional output
-results <- psycho::analyze(fit, Effect_Size=T)
+results <- psycho::analyze(fit, effsize=T)
 summary(results, round=2)
 ```
 

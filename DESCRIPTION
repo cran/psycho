@@ -2,7 +2,7 @@ Package: psycho
 Type: Package
 Title: Efficient and Publishing-Oriented Workflow for Psychological
         Science
-Version: 0.0.2
+Version: 0.0.8
 Authors@R: c(
     person("Dominique", 
         "Makowski", 
@@ -25,13 +25,13 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
 Depends: R (>= 3.1.0)
-Imports: ggplot2, dplyr, tidyr, purrr, tidyverse, rtf, psych, ppcor,
-        corrplot, rstanarm, MuMIn, lmerTest
-Suggests: knitr, rmarkdown, testthat, covr, lme4, broom
+Imports: ggplot2, dplyr, tidyr, purrr, psych, MASS, nFactors, qgraph,
+        ppcor, ggcorrplot, rstanarm, MuMIn, lmerTest
+Suggests: tidyverse, knitr, rmarkdown, testthat, covr, lme4, broom
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2017-10-14 07:33:27 UTC; DomM
+Packaged: 2018-01-10 08:52:48 UTC; Dom
 Author: Dominique Makowski [aut, cre],
   Viliam Simko [ctb]
 Repository: CRAN
-Date/Publication: 2017-10-14 22:07:43 UTC
+Date/Publication: 2018-01-10 09:06:13 UTC
