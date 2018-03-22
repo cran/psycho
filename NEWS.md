@@ -1,4 +1,15 @@
-# Current Dev 0.1.0
+# Current Dev 0.1.3
+
+### Breaking changes
+### New functions / parameters
+- Added R2 for bayesian regressions.
+- Added `dprime` function for signal detection theory indices computation.
+- Added `crawford.test` and `mellenbergh.test` function for single-case tests.
+- Added get_predicted for stanreg models
+### Changes
+
+
+# [0.1.0](https://github.com/neuropsychology/psycho.R/releases/tag/0.1.0) (2018-02-05)
 
 ### Breaking changes
 - `normalize` has been renamed to `standardize` #30
@@ -8,7 +19,7 @@
 - Added glasso and cor_auto estimation for `correlation` #25 #24
 - added `is.psychobject` function.
 ### Changes
-- CRAN ready
+- CRAN release
 - Fixed #28
 - Nicer print.psychobject output #32
 - Replaced NAs by empty strings in `correlation` #23

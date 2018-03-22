@@ -4,13 +4,16 @@ library(tidyverse)
 library(broom)
 library(rstanarm)
 
-## ------------------------------------------------------------------------
-# Do this once (uncomment if needed)
-# install.packages("devtools") 
-# library(devtools)
-# devtools::install_github("https://github.com/neuropsychology/psycho.R")
+## ---- eval = FALSE-------------------------------------------------------
+#  # This for the stable version:
+#  install.packages("psycho")
+#  
+#  # Or this for the dev version:
+#  install.packages("devtools")
+#  library(devtools)
+#  devtools::install_github("https://github.com/neuropsychology/psycho.R")
 
-# Load psycho (at the beginning of every script)
+## ------------------------------------------------------------------------
 library(psycho)
 
 ## ---- out.width=700, echo = FALSE, eval = TRUE, fig.align='center'-------
@@ -58,6 +61,22 @@ iris %>%
   psycho::standardize() %>% 
   summary()
 
+## ---- out.width=8, eval = TRUE, fig.align='center', results='hide', comment=NA----
+library(psycho)
+
+# Let's simulate three participants with different results at a perceptual detection task
+df <- data.frame(Participant = c("A", "B", "C"),
+                 n_hit = c(1, 2, 5),
+                 n_miss = c(6, 8, 1),
+                 n_fa = c(1, 3, 5), 
+                 n_cr = c(4, 8, 9))
+
+indices <- psycho::dprime(df$n_hit, df$n_miss, df$n_fa, df$n_cr)
+df <- cbind(df, indices)
+
+## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
+kable(df)
+
 ## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center', comment=NA----
 library(psycho)
 
@@ -96,6 +115,29 @@ p <- p +
         title = element_text(size = 16, colour="white"))
 p
 
+
+## ----echo=TRUE, message=FALSE, warning=FALSE, results='markup'-----------
+library(psycho)
+
+case1 <- 82 # The IQ of a patient
+case2 <- 61 # The IQ of another patient
+controls <- c(86, 100, 112, 95, 121, 102) # The IQs of a control group
+
+rez <- crawford.test(case1, controls)
+rez <- crawford.test(case2, controls)
+
+## ----echo=TRUE, message=FALSE, warning=FALSE, results='markup'-----------
+library(psycho)
+
+t0 <- 82 # The IQ of a patient at baseline
+t1 <- 105 # The IQ of a patient after the new therapy
+controls <- c(94, 100, 108, 95, 102, 94) # The IQs of a control group
+
+rez <- mellenbergh.test(t0, t1, controls = controls)
+
+# if we do not have a control group, we can also directly enter the SD of the score.
+# For IQ, the SD is of 15.
+rez <- mellenbergh.test(t0, t1, controls = 15)
 
 ## ----echo=TRUE, message=FALSE, warning=FALSE, results='hide'-------------
 results <- attitude %>%
@@ -182,4 +224,48 @@ print(results)
 
 ## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'----
 plot(results)
+
+## ---- results='hide'-----------------------------------------------------
+library(psycho)
+
+set.seed(666)
+fit <- rstanarm::stan_glm(Sepal.Width ~ Sepal.Length + Petal.Width, data=iris)
+predicted_data <- psycho::get_predicted(fit)
+
+## ---- results='markup', comment=NA---------------------------------------
+names(predicted_data)
+
+## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'----
+ggplot(predicted_data, aes(x=Sepal.Width, y=pred_Sepal.Width_median)) +
+  geom_point() +
+  geom_smooth(method="lm")
+
+## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'----
+new_data <- psycho::get_predicted(fit, newdf=T) %>% 
+  group_by(Sepal.Length, Petal.Width) %>% 
+  summarise_all(mean)
+
+ggplot(new_data, aes(x=Sepal.Length, y=pred_Sepal.Width_median, alpha=Petal.Width, group=Petal.Width)) +
+  geom_point() +
+  geom_line()
+
+## ----echo=FALSE, message=FALSE, warning=FALSE, results='hide'------------
+summary(analyze(fit), 2)
+
+## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
+kable(summary(analyze(fit), 2))
+
+## ---- results='hide'-----------------------------------------------------
+set.seed(666)
+names(iris)
+fit <- rstanarm::stan_glm(Sepal.Width ~ Sepal.Length * Petal.Width, data=iris)
+
+new_data <- psycho::get_predicted(fit, newdf=T) %>% 
+  group_by(Sepal.Length, Petal.Width) %>% 
+  summarise_all(mean)
+
+## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'----
+ggplot(new_data, aes(x=Sepal.Length, y=pred_Sepal.Width_median, alpha=Petal.Width, group=Petal.Width)) +
+  geom_point() +
+  geom_line()
 

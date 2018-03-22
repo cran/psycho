@@ -1,4 +1,4 @@
-<p align="center"><a href=https://github.com/neuropsychology/psycho.R/><img src="https://github.com/neuropsychology/psycho.R/blob/master/vignettes/images/logo.PNG" width="400" align="center" alt="psycho logo r package"></a></p>
+<p align="center"><a href=https://neuropsychology.github.io/psycho.R/><img src="https://github.com/neuropsychology/psycho.R/blob/master/vignettes/images/logo.PNG" width="400" align="center" alt="psycho logo r package"></a></p>
 
 
 *<h4 align="center">Efficient and Publishing-Oriented Workflow for Psychological Science</h2>*
@@ -20,16 +20,19 @@
 |----------------|---|
 |Stable|[![CRAN](https://www.r-pkg.org/badges/version/psycho)](https://CRAN.R-project.org/package=psycho)|
 |Documentation|[![Rdoc](http://www.rdocumentation.org/badges/version/psycho)](http://www.rdocumentation.org/packages/psycho)|
+|Page|[![](https://img.shields.io/badge/blog-psycho-orange.svg?colorB=E91E63)](https://neuropsychology.github.io/psycho.R)|
 |Examples|[![](https://img.shields.io/badge/vignettes-0.0.8-orange.svg?colorB=FF5722)](https://CRAN.R-project.org/package=psycho/vignettes/overview.html)|
 |Questions|[![](https://img.shields.io/badge/issue-create-purple.svg?colorB=FF9800)](https://github.com/neuropsychology/psycho.R/issues)|
 |Authors|[![](https://img.shields.io/badge/CV-D._Makowski-purple.svg?colorB=9C27B0)](https://dominiquemakowski.github.io/)|
+|Reference|[![DOI](http://joss.theoj.org/papers/10.21105/joss.00470/status.svg)](https://doi.org/10.21105/joss.00470)|
+
 
 ---
 
 
 ## Goal
 
-The main goal of the `psycho` package is to provide tools for psychologists, neuropsychologists and neuroscientists, to transform statistical outputs into something readable that can be, almost directly, copied and pasted into a report. It also implements various functions, from very useful ones (`correlation()`, `normalize()`) to miscellaenous ones (`find_season()`).
+The main goal of the `psycho` package is to provide tools for psychologists, neuropsychologists and neuroscientists, to transform statistical outputs into something readable that can be, almost directly, copied and pasted into a report. It also implements various functions, from very useful ones (`correlation()`, `standardize()`) to miscellaenous ones (`find_season()`).
 
 
 ## Contribute
@@ -46,10 +49,12 @@ Want to get involved in the developpment of an open-source software and improve 
 
 The `psycho` package can already do the following:
 
-- [x] Normalize your data
+- [x] Standardize your data
 - [x] Enlight you on how many factors to retain for a PCA
 - [x] Give you some clinically relevant info on a participant's score
+- [x] Implements methods for single-case analyses
 - [x] Compute complex correlation matrices
+- [x] Compute signal detection theory indices (d', beta, ...)
 - [x] Help you in the interpretation of various models (lme4, stan_lmer)
 
 
@@ -82,4 +87,8 @@ library("psycho")
 
 ## Credits
 
-Please remember that `psycho` is a high-level package that heavily relies on many other packages, such as [tidyverse](https://www.tidyverse.org/), [psych](http://personality-project.org/r/overview.pdf), [graph](http://sachaepskamp.com/qgraph), [rstanarm](https://github.com/stan-dev/rstanarm), [lme4](https://CRAN.R-project.org/package=lme4) and others (See [Description](https://github.com/neuropsychology/psycho.R/blob/master/DESCRIPTION) for the full list of dependencies). Please cite their authors ;)
+You can cite the package as following:
+- Makowski, (2018). The psycho Package: an Efficient and Publishing-Oriented Workflow for Psychological Science. Journal of Open Source Software, 3(22), 470. https://doi.org/10.21105/joss.00470
+
+
+Please remember that `psycho` is a high-level package that heavily relies on many other packages, such as [tidyverse](https://www.tidyverse.org/), [psych](http://personality-project.org/r/overview.pdf), [qgraph](http://sachaepskamp.com/qgraph), [rstanarm](https://github.com/stan-dev/rstanarm), [lme4](https://CRAN.R-project.org/package=lme4) and others (See [Description](https://github.com/neuropsychology/psycho.R/blob/master/DESCRIPTION) for the full list of dependencies). Please cite their authors ;)
