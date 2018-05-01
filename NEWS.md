@@ -1,10 +1,53 @@
-# Current Dev 0.1.3
+# Current Dev
+
+### Breaking changes
+- Set default overlap parameter to TRUE in `analyze.stanreg` 
+- Remove support of lmerMod objects (linear mixed models must be fitted with lmerTest)
+- Refactored get_predicted.stanreg
+- Changed organization of `values` in analyzed models
+- Added `subset` parameter in `standardize`
+- Changed order of parameters in `dprime`
+### New functions / parameters
+- Added `print` for `n_factors`
+- Added `overlap` (experimental) parameter to analyze.stanreg as a different index of effect existence
+- Added `overlap` function
+- Added `power_analysis` function.
+- Added `analyze.lm` for lm objects.
+- Added `interpret_bf` for bayes factor interpretation
+- Added `probs_to_odds`
+- Added confidence intervals (CI) to analyze for lmerTest models
+- Refactored `odds_to_probs`
+- Added ìs.mixed.stanreg`
+- Added `keep_iterations` in `get_predicted.stanreg` (and demonstration of how to plot them in vignettes)
+- Added `emotion` dataset
+- Added get_contrasts methods for lme4 objects
+- Added prior info in `analyze.stanreg`
+- Added (exposed) `interpret_d_posterior` for Bayesian size effect interpretation
+- Added `find_combinations` function
+- Added `find_best_model` function
+- Added `is.standardized` function
+- Added `get_contrasts.stanreg` and `get_predicted.stanreg` functions
+- Added `crawford_dissociation.test` function for single-case tests
+- Externalized the "mpe" function
+- Added `affective` dataset
+### Changes
+- Added model selection chapter in Bayesian vignettes
+- Refactor the `analyze.stanreg` code
+- Improved `standardize` for vectors
+- Added random effects summary in `analyze.stanreg`
+- Improved `mellenbergh.test`
+- Improved `analyze.stanreg`
+- Added new vignette for "Bayesian analyses in psychology"
+- Improved `crawford.test`
+
+# [0.1.4](https://github.com/neuropsychology/psycho.R/releases/tag/0.1.4) (2018-03-23)
+
 
 ### Breaking changes
 ### New functions / parameters
-- Added R2 for bayesian regressions.
-- Added `dprime` function for signal detection theory indices computation.
-- Added `crawford.test` and `mellenbergh.test` function for single-case tests.
+- Added R2 for bayesian regressions
+- Added `dprime` function for signal detection theory indices computation
+- Added `crawford.test` and `mellenbergh.test` function for single-case tests
 - Added get_predicted for stanreg models
 ### Changes
 

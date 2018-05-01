@@ -12,7 +12,8 @@ abstract: |
 vignette: >
   %\VignetteIndexEntry{Overview}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteDepends{tidyverse}
+  %\VignetteDepends{dplyr}
+  %\VignetteDepends{ggplot2}
   \usepackage[utf8]{inputenc}
 ---
 
@@ -20,13 +21,17 @@ vignette: >
 
 ------
 
+# Index
+
+- [Overview](https://CRAN.R-project.org/package=psycho/vignettes/overview.html)
+- Bayesian Analyses in Psychology
 
 # Overview
 
 ```{r, echo=F, message=FALSE, warning=FALSE}
 library(knitr)
-library(tidyverse)
-library(broom)
+library(dplyr)
+library(ggplot2)
 library(rstanarm)
 ```
 
@@ -56,10 +61,17 @@ install.packages("psycho")
 # Or this for the dev version:
 install.packages("devtools")
 library(devtools)
-devtools::install_github("https://github.com/neuropsychology/psycho.R")
+devtools::install_github("neuropsychology/psycho.R")
 ```
 
-Else, just put this at the beginning of every script:
+**In case of error**: Sometimes the installation fails, and you might find in the redish output the following lines:
+```r
+there is no package called ‘**thenameofapackage**’
+ERROR: lazy loading failed for package ‘psycho’
+```
+Try installing the missing packages (`install.packages("thenameofapackage")`) and try the installation of psycho again.
+
+Anyway, once you have `psycho`, just put this at the beginning of every script:
 ```{r}
 library(psycho)
 ```
@@ -90,10 +102,11 @@ library(psycho)
 
 df <- iris
 
-cor <- psycho::correlation(df, 
-                           type = "full",
-                           method = "pearson",
-                           adjust = "none")
+cor <- psycho::correlation(df,
+  type = "full",
+  method = "pearson",
+  adjust = "none"
+)
 
 summary(cor)
 ```
@@ -122,10 +135,11 @@ library(psycho)
 
 df <- iris
 
-pcor <- psycho::correlation(df, 
-                           type = "partial",
-                           method = "pearson",
-                           adjust = "bonferroni")
+pcor <- psycho::correlation(df,
+  type = "partial",
+  method = "pearson",
+  adjust = "bonferroni"
+)
 
 summary(pcor)
 ```
@@ -144,11 +158,11 @@ The `standardize()` function allows you to easily scale and center all numeric v
 
 ```{r, out.width=8, eval = TRUE, fig.align='center', results='markup', comment=NA}
 library(psycho)
-library(tidyverse)
+library(dplyr)
 
-iris %>% 
-  select(Species, Sepal.Length, Petal.Length) %>% 
-  psycho::standardize() %>% 
+iris %>%
+  dplyr::select(Species, Sepal.Length, Petal.Length) %>%
+  psycho::standardize() %>%
   summary()
 ```
 
@@ -175,13 +189,15 @@ To compute them with `psycho`, simply run the following:
 library(psycho)
 
 # Let's simulate three participants with different results at a perceptual detection task
-df <- data.frame(Participant = c("A", "B", "C"),
-                 n_hit = c(1, 2, 5),
-                 n_miss = c(6, 8, 1),
-                 n_fa = c(1, 3, 5), 
-                 n_cr = c(4, 8, 9))
+df <- data.frame(
+  Participant = c("A", "B", "C"),
+  n_hit = c(1, 2, 5),
+  n_fa = c(1, 3, 5),
+  n_miss = c(6, 8, 1),
+  n_cr = c(4, 8, 9)
+)
 
-indices <- psycho::dprime(df$n_hit, df$n_miss, df$n_fa, df$n_cr)
+indices <- psycho::dprime(df$n_hit, df$n_fa, df$n_miss, df$n_cr)
 df <- cbind(df, indices)
 ```
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -201,7 +217,7 @@ This function is useful in clinical activity. It is sometimes necessary to show 
 ```{r, fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center', comment=NA}
 library(psycho)
 
-results <- psycho::assess(124, mean=100, sd=15)
+results <- psycho::assess(124, mean = 100, sd = 15)
 
 # Print it
 print(results)
@@ -215,7 +231,7 @@ It is also possible to custom the plot a bit (see the [documentation](https://ww
 ```{r, fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'}
 library(psycho)
 
-results <- psycho::assess(85, mean=100, sd=15, linecolor = "orange", fillcolor = "#4CAF50")
+results <- psycho::assess(85, mean = 100, sd = 15, linecolor = "orange", fillcolor = "#4CAF50")
 
 # Plot it
 plot(results)
@@ -237,18 +253,19 @@ library(psycho)
 p <- plot(psycho::correlation(iris))
 
 # Custom theme and colours
-p <- p + 
+p <- p +
   scale_fill_gradientn(colors = c("#4CAF50", "#FFEB3B", "#FF5722")) +
   ylab("Variables\n") +
   labs(fill = "r") +
-  theme(plot.background = element_rect(fill = "#607D8B"),
-        axis.title.y = element_text(size = 20, angle = 90, colour="white"),
-        axis.text = element_text(size = 15, colour="white"),
-        legend.title = element_text(size = 20, colour="white"),
-        legend.text = element_text(size = 15, colour="white"),
-        title = element_text(size = 16, colour="white"))
+  theme(
+    plot.background = element_rect(fill = "#607D8B"),
+    axis.title.y = element_text(size = 20, angle = 90, colour = "white"),
+    axis.text = element_text(size = 15, colour = "white"),
+    legend.title = element_text(size = 20, colour = "white"),
+    legend.text = element_text(size = 15, colour = "white"),
+    title = element_text(size = 16, colour = "white")
+  )
 p
-
 ```
 
 
@@ -264,12 +281,26 @@ Neuropsychologists often need to compare a single case to a small control group.
 ```{r echo=TRUE, message=FALSE, warning=FALSE, results='markup'}
 library(psycho)
 
-case1 <- 82 # The IQ of a patient
-case2 <- 61 # The IQ of another patient
+case <- 61 # The IQ of a patient
 controls <- c(86, 100, 112, 95, 121, 102) # The IQs of a control group
 
-rez <- crawford.test(case1, controls)
-rez <- crawford.test(case2, controls)
+rez <- crawford.test(case, controls)
+```
+
+### Crawford-Howell (1998) t-test for dissociation
+
+Assessing dissociation between processes is a fundamental part of clinical neuropsychology. However, while the detection of suspected impairments is a fundamental feature of single-case studies, evidence of an impairment on a given task usually becomes of theoretical interest only if it is observed in the context of less impaired or normal performance on other tasks. Crawford and Garthwaite (2012) demonstrate that the Crawford-Howell (1998) t-test for dissociation is a better approach (in terms of controlling Type I error rate) than other commonly-used alternatives.
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, results='markup'}
+library(psycho)
+
+case_X <- 132
+case_Y <- 7
+controls_X <- c(100, 125, 89, 105, 109, 99)
+controls_Y <- c(7, 8, 9, 6, 7, 10)
+
+rez <- crawford_dissociation.test(case_X, case_Y, controls_X, controls_Y)
 ```
 
 
@@ -301,7 +332,7 @@ The `n_factors()` function is useful in before running principal component (PCA)
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
 results <- attitude %>%
-  select_if(is.numeric) %>% 
+  dplyr::select_if(is.numeric) %>%
   psycho::n_factors()
 
 # Get a summary
@@ -337,56 +368,50 @@ This is possibly the most important function of the `psycho` package. Its goal i
 
 ### Data Creation
 
-Let's start by creating a dataframe similar to those found in psychological science.
+Let's start by selecting a dataframe similar to those found in psychological science, included in the `psycho` package.
 
 ```{r, results='hide'}
-set.seed(666)
-df <- data.frame(Participant = as.factor(rep(1:25, each = 4)), 
-                 Item = rep_len(c("i1", "i2", "i3", "i4"), 100), 
-                 Condition = rep_len(c("A", "B", "A", "B", "B"), 20), 
-                 Error = as.factor(sample(c(0, 1), 100, replace = T)),
-                 RT = rnorm(100, 30, .2), 
-                 Stress = runif(100, 3, 5))
+df <- psycho::emotion
 
-# Standardize the numeric variables.
-df <- psycho::standardize(df)
+# Stabdardize the outcome
+df$Subjective_Arousal <- psycho::standardize(df$Subjective_Arousal)
 
 # Take a look  at the first 10 rows
 head(df)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-kable(head(df))
+knitr::kable(head(df))
 ```
 
-This dataframe contains the data of 25 participants (labelled from 1 to 25). Each saw 4 different items (i1-i4) in two conditions (A and B). We measured, for each item, if the response was correct or not (Error), its reaction time (RT) and the stress associated with the trial.
+This dataframe contains the data of 19 participants. Each participant underwent 48 trials (therefore, there are 48 lines per participant), consisting in viewing negative and neutral pictures. We measured, for each item, the emotional arousal felt by the participant.
 
 ### Ancient Approach
 
-In order to investigate the effect of the condition on the reaction time RT, the traditional, ancient and obsolete routine is 1) to compute the mean for each participant, and 2) run an ANOVA.
+In order to investigate the effect of the emotional condition on the subjective arousal, the traditional, ancient and obsolete routine is 1) to compute the mean for each participant, and 2) run an ANOVA.
 
 ```{r message=FALSE, warning=FALSE, results='markup', comment=NA}
 # Format data
-df_for_anova <- df %>% 
-  dplyr::group_by(Participant, Condition) %>% 
-  dplyr::summarise(RT = mean(RT))
+df_for_anova <- df %>%
+  dplyr::group_by(Participant_ID, Emotion_Condition) %>%
+  dplyr::summarise(Subjective_Arousal = mean(Subjective_Arousal))
 
 # Run the anova
-anova <- aov(RT ~ Condition + Error(Participant), df_for_anova)
-summary(anova)
+aov_results <- aov(Subjective_Arousal ~ Emotion_Condition + Error(Participant_ID), df_for_anova)
+summary(aov_results)
 ```
 
-As we can see, the effect of the condition is not significant (unsuprisingly, as data was generated randomly). One of the many flaws of this approach is that we lose information about intra-individual and item-related variability.
+As we can see, the effect of the condition is significant. One of the many flaws of this approach is that we lose information about intra-individual and item-related variability.
 
 
 ### Mixed Linear Regressions (lme4, lmerTest)
 
-The use of the mixed-modelling framework allows us to add the items as random factors.
+The use of the mixed-modelling framework allows us to add the items as random factors to account for the variance they induce.
 
 ```{r fig.align='center', message=FALSE, warning=FALSE, val=TRUE, results='markup', comment=NA}
-library(lme4)
+library(lmerTest)
 
-fit <- lme4::lmer(RT ~ Condition + (1|Participant) + (1|Item), data=df)
+fit <- lmerTest::lmer(Subjective_Arousal ~ Emotion_Condition + (1|Participant_ID) + (1|Item_Name), data = df)
 
 # Traditional output
 summary(fit)
@@ -401,7 +426,7 @@ results <- psycho::analyze(fit)
 summary(results, round = 2)
 ```
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-kable(summary(results, round = 2))
+knitr::kable(summary(results, round = 2))
 ```
 
 
@@ -414,20 +439,20 @@ print(results)
 
 ### Bayesian Mixed Linear Regressions (rstanarm)
 
-However, as the frequentist framework is criticized, it is advised to switch to the Bayesian framework. Unfortunately, interpretation of these models remain unfamiliar to regular psychologists. But stay calm, because `analyze()` handles this for you. 
+However, as the frequentist framework is criticized, it is advised to switch to the Bayesian framework. Unfortunately, interpretation of these models remain unfamiliar to regular psychologists. But don't worry, because `analyze()` handles this for you. 
 
 ```{r fig.align='center', message=FALSE, warning=FALSE, val=TRUE, results='hide'}
 library(rstanarm)
 
-fit <- rstanarm::stan_lmer(RT ~ Condition + (1|Participant) + (1|Item), data=df)
+fit <- rstanarm::stan_lmer(Subjective_Arousal ~ Emotion_Condition + (1|Participant_ID) + (1|Item_Name), data = df)
 
 # Traditional output
-results <- psycho::analyze(fit, effsize=T)
-summary(results, round=2)
+results <- psycho::analyze(fit, effsize = TRUE)
+summary(results, round = 2)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-kable(summary(results, round = 2))
+knitr::kable(summary(results, round = 2))
 ```
 
 ```{r, results='markup', comment=NA}
@@ -442,72 +467,19 @@ plot(results)
 Obviously, you need to learn more about Bayesian analyses before running them. You can find more information in the rstanarm's [vignettes](https://CRAN.R-project.org/package=rstanarm/vignettes/rstanarm.html).
 
 
-
-
-------
-
-## Visualize a Bayesian Model
-
-
-We often want to visualize our models. While it is relatively easy for simple models such as non-mixed and non-multiple regressions, the addition of predictors and random effects tend to decouple their results from our actual data.
-
-One thing we can do is to plot the predicted values. Let's start with simple models (based on the iris dataset).
-
-```{r, results='hide'}
-library(psycho)
-
-set.seed(666)
-fit <- rstanarm::stan_glm(Sepal.Width ~ Sepal.Length + Petal.Width, data=iris)
-predicted_data <- psycho::get_predicted(fit)
-```
-
-```{r, results='markup', comment=NA}
-names(predicted_data)
-```
-
-As we can see, the `get_predicted` function added three variables, corresponding to the median and 90% credible interval of the predicted posterior distribution. Let's plot, first, the predicted values against the true values.
-
-```{r, fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'}
-ggplot(predicted_data, aes(x=Sepal.Width, y=pred_Sepal.Width_median)) +
-  geom_point() +
-  geom_smooth(method="lm")
-```
-We can also extract a new dataframe based on all combinations of values and plot them to better illustrate our model.
-
-```{r, fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'}
-new_data <- psycho::get_predicted(fit, newdf=T) %>% 
-  group_by(Sepal.Length, Petal.Width) %>% 
-  summarise_all(mean)
-
-ggplot(new_data, aes(x=Sepal.Length, y=pred_Sepal.Width_median, alpha=Petal.Width, group=Petal.Width)) +
-  geom_point() +
-  geom_line()
-```
-
-```{r echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-summary(analyze(fit), 2)
-```
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-kable(summary(analyze(fit), 2))
-```
+Critically, see [**THIS**](https://github.com/neuropsychology/psycho.R/blob/master/vignettes/bayesian.Rmd) vignette for a guide to bayesian statistics for psychology.
 
 
 
-As you can see, the representation of the model is rather coherent with its paremeters. What now if we specify an interaction in the model?
+## Credits
 
-```{r, results='hide'}
-set.seed(666)
-names(iris)
-fit <- rstanarm::stan_glm(Sepal.Width ~ Sepal.Length * Petal.Width, data=iris)
+This package helped you? Don't forget to cite the various packages you used :)
 
-new_data <- psycho::get_predicted(fit, newdf=T) %>% 
-  group_by(Sepal.Length, Petal.Width) %>% 
-  summarise_all(mean)
-```
+You can cite `psycho` as follows:
 
-```{r, fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'}
-ggplot(new_data, aes(x=Sepal.Length, y=pred_Sepal.Width_median, alpha=Petal.Width, group=Petal.Width)) +
-  geom_point() +
-  geom_line()
-```
+- Makowski, (2018). *The psycho Package: an Efficient and Publishing-Oriented Workflow for Psychological Science*. Journal of Open Source Software, 3(22), 470. https://doi.org/10.21105/joss.00470
 
+
+## Contribution
+
+Improve this vignette by modifying [this](https://github.com/neuropsychology/psycho.R/blob/master/vignettes/overview.Rmd) file!

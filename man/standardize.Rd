@@ -4,12 +4,16 @@
 \alias{standardize}
 \title{Standardize (scale and reduce) numeric variables.}
 \usage{
-standardize(df, except = NULL)
+standardize(df, subset = NULL, except = NULL)
 }
 \arguments{
 \item{df}{Dataframe.}
 
-\item{except}{Character or list of characters of column names to be excluded from normalization.}
+\item{subset}{Character or list of characters of column names to be
+standardized.}
+
+\item{except}{Character or list of characters of column names to be excluded
+from standardization.}
 }
 \value{
 Dataframe.
@@ -29,6 +33,9 @@ df <- data.frame(
 dfZ <- standardize(df)
 dfZ <- standardize(df, except="V3")
 dfZ <- standardize(df, except=c("V1", "V2"))
+dfZ <- standardize(df, subset="V3")
+dfZ <- standardize(df, subset=c("V1", "V2"))
+
 
 }
 \author{

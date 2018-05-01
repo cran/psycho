@@ -5,7 +5,7 @@
 #' @param x A stanreg model.
 #' @param CI Credible interval bounds.
 #' @param effsize Compute Effect Sizes according to Cohen (1988)? Your outcome variable must be standardized.
-#' @param verbose Toggle warnings display.
+#' @param overlap Compute the overlapping coefficient between the posterior and a normal distribution of mean 0 and same SD.
 #' @param ... Arguments passed to or from other methods.
 #'
 #' @return output
@@ -13,20 +13,19 @@
 #' @examples
 #' \dontrun{
 #' library(psycho)
-#' require(rstanarm)
-#' fit <- rstanarm::stan_glm(vs ~ mpg * cyl, data=mtcars)
+#' library(rstanarm)
 #'
-#' results <- analyze(fit)
-#' summary(results)
+#' data <- standardize(attitude)
+#' fit <- rstanarm::stan_glm(rating ~ advance + privileges, data=data)
 #'
-#' data <- normalize(attitude)
-#' fit <- rstanarm::stan_lm(rating ~ advance + privileges + learning + raises,
-#'                          data=data, prior=R2(1))
-#'
-#' results <- analyze(fit)
+#' results <- analyze(fit, effsize=TRUE)
 #' summary(results)
 #' plot(results)
 #' print(results)
+#'
+#' fit <- rstanarm::stan_glmer(Sepal.Length ~ Sepal.Width + (1|Species), data=iris)
+#' results <- analyze(fit)
+#' summary(results)
 #' }
 #'
 #' @author \href{https://dominiquemakowski.github.io/}{Dominique Makowski}
@@ -35,15 +34,19 @@
 #' @import tidyr
 #' @import dplyr
 #' @import ggplot2
-#' @importFrom stats quantile
+#' @importFrom stats quantile as.formula rnorm
 #' @importFrom utils head tail
+#' @importFrom broom tidy
 #' @export
-analyze.stanreg <- function(x, CI=95, effsize=FALSE, verbose=T, ...) {
-
-
-  # Processing
-  # -------------
+analyze.stanreg <- function(x, CI=90, effsize=FALSE, overlap=TRUE, ...) {
   fit <- x
+
+  # Info --------------------------------------------------------------------
+  # -------------------------------------------------------------------------
+
+  predictors <- all.vars(as.formula(fit$formula))
+  outcome <- predictors[[1]]
+  predictors <- tail(predictors, -1)
 
   # Extract posterior distributions
   posteriors <- as.data.frame(fit)
@@ -52,101 +55,182 @@ analyze.stanreg <- function(x, CI=95, effsize=FALSE, verbose=T, ...) {
   varnames <- names(fit$coefficients)
   varnames <- varnames[grepl("b\\[", varnames) == FALSE]
 
-  # If the model is an LM, extract the R2 distribution
+  # Initialize empty values
+  values <- list(model = list(), effects = list())
+
+  values$model$formula <- fit$formula
+  values$model$outcome <- outcome
+  values$model$predictors <- predictors
+
+  # Priors
+  info_priors <- rstanarm::prior_summary(fit)
+  values$priors <- info_priors
+
+  # R2 ----------------------------------------------------------------------
   if ("R2" %in% names(posteriors)) {
     varnames <- c(varnames, "R2")
+    R2 <- TRUE
   } else {
-    posteriors$R2 <- rstanarm::bayes_R2(fit)
+    posteriors$R2 <- tryCatch({
+      rstanarm::bayes_R2(fit)
+    }, error = function(e) {
+      0
+    })
+
+    if (all(posteriors$R2 == 0)) {
+      R2 <- FALSE
+    } else {
+      R2 <- TRUE
+    }
+
     varnames <- c(varnames, "R2")
   }
 
-  # Initialize empty values
-  values <- list()
+
+  # Random effect info --------------------------------------------
+  if (is.mixed(fit)) {
+    random_info <- broom::tidy(fit, parameters = "varying") %>%
+      dplyr::rename_(
+        "Median" = "estimate",
+        "MAD" = "std.error"
+      )
+    values$random <- random_info
+  }
+
+
+
+  # Get indices of each variable --------------------------------------------
+  # -------------------------------------------------------------------------
+
   # Loop over all variables
   for (varname in varnames) {
+
+    # Prior
+    # TBD: this doesn't work with categorical predictors :(
+    info_prior <- list()
+    if (varname %in% predictors) {
+      predictor_index <- which(predictors == varname)
+      if (length(info_priors$prior$dist) == 1) {
+        info_priors$prior$dist <- rep(
+          info_priors$prior$dist,
+          length(info_priors$prior$location)
+        )
+      }
+      info_prior["distribution"] <- info_priors$prior$dist[predictor_index]
+      info_prior["location"] <- info_priors$prior$location[predictor_index]
+      info_prior["scale"] <- info_priors$prior$scale[predictor_index]
+      info_prior["adjusted_scale"] <- info_priors$prior$adjusted_scale[predictor_index]
+    }
+
+    if (varname == "(Intercept)") {
+      info_prior["distribution"] <- info_priors$prior_intercept$dist
+      info_prior["location"] <- info_priors$prior_intercept$location
+      info_prior["scale"] <- info_priors$prior_intercept$scale
+      info_prior["adjusted_scale"] <- info_priors$prior_intercept$adjusted_scale
+    }
+
+
+
+
     # Extract posterior
     posterior <- posteriors[, varname]
 
-    # Find basic posterior indices
-    median <- median(posterior)
-    mad <- mad(posterior)
-    mean <- mean(posterior)
-    sd <- sd(posterior)
-    CI_values <- hdi(posterior, prob = CI / 100)
-    CI_values <- c(CI_values$values$HDImin, CI_values$values$HDImax)
-
-    # Compute MPE
-    if (median >= 0) {
-      MPE <- length(posterior[posterior >= 0]) / length(posterior) * 100
-      if (MPE == 100) {
-        MPE_values <- c(min(posterior), max(posterior))
-      } else {
-        MPE_values <- c(0, max(posterior))
-      }
+    if (varname == "R2" & R2 == FALSE) {
+      text <- ""
+      median <- "unavailable"
+      mad <- "unavailable"
+      mean <- "unavailable"
+      sd <- "unavailable"
+      CI_values <- "unavailable"
+      CI_values <- "unavailable"
+      MPE <- "unavailable"
+      MPE_values <- "unavailable"
     } else {
-      MPE <- length(posterior[posterior < 0]) / length(posterior) * 100
-      if (MPE == 100) {
-        MPE_values <- c(min(posterior), max(posterior))
+      # Find basic posterior indices
+      median <- median(posterior)
+      mad <- mad(posterior)
+      mean <- mean(posterior)
+      sd <- sd(posterior)
+      CI_values <- hdi(posterior, prob = CI / 100)
+      CI_values <- c(CI_values$values$HDImin, CI_values$values$HDImax)
+
+      # Compute MPE
+      MPE <- mpe(posterior)$MPE
+      MPE_values <- mpe(posterior)$values
+
+
+
+
+      # Create text
+      if (grepl(":", varname)) {
+        splitted <- strsplit(varname, ":")[[1]]
+        if (length(splitted) == 2) {
+          name <- paste0(
+            "interaction effect between ",
+            splitted[1], " and ", splitted[2]
+          )
+        } else {
+          name <- varname
+        }
       } else {
-        MPE_values <- c(min(posterior), 0)
+        name <- paste0("effect of ", varname)
       }
-    }
 
-
-
-    # Create text
-    if (grepl(":", varname)) {
-      splitted <- strsplit(varname, ":")[[1]]
-      if (length(splitted) == 2) {
-        name <- paste(
-          "interaction effect between ",
-          splitted[1], " and ", splitted[2],
-          sep = ""
-        )
-      } else {
-        name <- varname
-      }
-    } else {
-      name <- paste("effect of ", varname, sep = "")
-    }
-
-    text <- paste0(
-      "   - Concerning the ", name, ", there is a probability of ",
-      format_digit(MPE), "% that its coefficient is between ",
-      format_digit(MPE_values[1], null_treshold = 0.0001), " and ",
-      format_digit(MPE_values[2], null_treshold = 0.0001),
-      " (Median = ", format_digit(median, null_treshold = 0.0001),
-      ", MAD = ", format_digit(mad, null_treshold = 0.0001),
-      # ", Mean = ", format_digit(mean),
-      # ", SD = ", format_digit(sd),
-      ", ", CI, "% CI [",
-      format_digit(CI_values[1], null_treshold = 0.0001), ", ",
-      format_digit(CI_values[2], null_treshold = 0.0001), "], ",
-      "MPE = ", format_digit(MPE), "%)."
-    )
-
-    if (varname == "R2") {
       text <- paste0(
-        "The model explains between ",
-        format_digit(min(posterior) * 100),
-        "% and ",
-        format_digit(max(posterior) * 100),
-        "% of the outcome's variance (R2's median = ",
-        format_digit(median(posterior) * 100),
-        ", R2's MAD = ",
-        format_digit(mad(posterior) * 100),
-        "%, R2's ",
-        CI,
-        "% CI [",
-        format_digit(CI_values[1], null_treshold = 0.0001),
-        ", ",
-        format_digit(CI_values[2], null_treshold = 0.0001),
-        "])"
+        "  - The ", name, " has a probability of ",
+        format_digit(MPE), "% that its coefficient is between ",
+        format_digit(MPE_values[1], null_treshold = 0.0001), " and ",
+        format_digit(MPE_values[2], null_treshold = 0.0001),
+        " (Median = ", format_digit(median, null_treshold = 0.0001),
+        ", MAD = ", format_digit(mad, null_treshold = 0.0001),
+        # ", Mean = ", format_digit(mean),
+        # ", SD = ", format_digit(sd),
+        ", ", CI, "% CI [",
+        format_digit(CI_values[1], null_treshold = 0.0001), ", ",
+        format_digit(CI_values[2], null_treshold = 0.0001), "], ",
+        "MPE = ", format_digit(MPE), "%)."
       )
+
+      if (varname == "(Intercept)") {
+        text <- paste0(
+          "The model's intercept is at ",
+          format_digit(median(posterior)),
+          " (MAD = ",
+          format_digit(mad(posterior)),
+          ", ",
+          CI,
+          "% CI [",
+          format_digit(CI_values[1], null_treshold = 0.0001),
+          ", ",
+          format_digit(CI_values[2], null_treshold = 0.0001),
+          "]). Within this model:"
+        )
+      }
+
+      if (varname == "R2") {
+        text <- paste0(
+          "The model explains between ",
+          format_digit(min(posterior) * 100),
+          "% and ",
+          format_digit(max(posterior) * 100),
+          "% of the outcome's variance (R2's median = ",
+          format_digit(median(posterior)),
+          ", MAD = ",
+          format_digit(mad(posterior)),
+          ", ",
+          CI,
+          "% CI [",
+          format_digit(CI_values[1], null_treshold = 0.0001),
+          ", ",
+          format_digit(CI_values[2], null_treshold = 0.0001),
+          "]). "
+        )
+      }
     }
 
-    # Store all that
-    values[[varname]] <- list(
+
+    # Store all indices
+    values$effects[[varname]] <- list(
       name = varname,
       median = median,
       mad = mad,
@@ -156,187 +240,111 @@ analyze.stanreg <- function(x, CI=95, effsize=FALSE, verbose=T, ...) {
       MPE = MPE,
       MPE_values = MPE_values,
       posterior = posterior,
-      text = text
+      text = text,
+      prior = info_prior
     )
   }
 
-  # Effect size
-  # -------------
-  if (effsize == T) {
-    if (verbose == T) {
-      warning("Interpreting effect size following Cohen (1977, 1988)... Make sure your variables were standardized!")
+
+
+
+
+
+  # Effect Sizes ------------------------------------------------------------
+  # -------------------------------------------------------------------------
+  if (effsize == TRUE) {
+
+    # Check if standardized
+    model_data <- fit$data
+    model_data <- model_data[all.vars(as.formula(fit$formula))]
+    standardized <- is.standardized(model_data)
+    if (standardized == FALSE) {
+      warning("It seems that your data was not standardized... Interpret effect sizes with caution!")
     }
+
 
     EffSizes <- data.frame()
     for (varname in varnames) {
-      posterior <- posteriors[, varname]
-
-      # Compute the probabilities
-      mkneg <- function(pmin, pmax) {
-        stopifnot(pmin < pmax) # sanity check
-        length(posterior[posterior > pmin & posterior <= pmax]) /
-          length(posterior)
-      }
-
-      mkpos <- function(pmin, pmax) {
-        stopifnot(pmin < pmax) # sanity check
-        length(posterior[posterior >= pmin & posterior < pmax]) /
-          length(posterior)
-      }
-
-      verylarge_neg <- mkneg(-Inf, -1.3)
-      large_neg <- mkneg(-1.3, -0.8)
-      medium_neg <- mkneg(-0.8, -0.5)
-      small_neg <- mkneg(-0.5, -0.2)
-      verysmall_neg <- mkneg(-0.2, 0) # TODO: there was open interval at 0
-
-      verylarge_pos <- mkpos(1.3, Inf)
-      large_pos <- mkpos(0.8, 1.3)
-      medium_pos <- mkpos(0.5, 0.8)
-      small_pos <- mkpos(0.2, 0.5)
-      verysmall_pos <- mkpos(0, 0.2) # TODO: there was open interval at 0
-
-      EffSize <- data.frame(
-        Direction = c(
-          "Negative", "Negative", "Negative", "Negative",
-          "Negative", "Positive", "Positive", "Positive",
-          "Positive", "Positive"
-        ),
-        Size = c(
-          "VeryLarge", "Large", "Medium", "Small", "VerySmall",
-          "VerySmall", "Small", "Medium", "Large", "VeryLarge"
-        ),
-        Probability = c(
-          verylarge_neg, large_neg, medium_neg, small_neg,
-          verysmall_neg, verysmall_pos, small_pos, medium_pos,
-          large_pos, verylarge_pos
-        )
-      )
-
-      EffSize$Probability[is.na(EffSize$Probability)] <- 0
-      EffSize$Variable <- varname
-
-      EffSizes <- rbind(EffSizes, EffSize)
-
-      if (mean(posterior) >= 0) {
-        opposite_prob <-
-          sum(EffSize$Probability[EffSize$Direction == "Negative"])
-        if (length(posterior[posterior > 0]) > 0) {
-          opposite_max <- min(posterior[posterior > 0])
-        } else {
-          opposite_max <- 0
-        }
-        verylarge <- verylarge_pos
-        large <- large_pos
-        medium <- medium_pos
-        small <- small_pos
-        verysmall <- verysmall_pos
-      } else {
-        opposite_prob <-
-          sum(EffSize$Probability[EffSize$Direction == "Positive"])
-        if (length(posterior[posterior > 0]) > 0) {
-          opposite_max <- max(posterior[posterior > 0])
-        } else {
-          opposite_max <- 0
-        }
-        verylarge <- verylarge_neg
-        large <- large_neg
-        medium <- medium_neg
-        small <- small_neg
-        verysmall <- verysmall_neg
-      }
-
-      EffSize_text <- paste0(
-        "   - Based on Cohen (1988) recommandations, there is a probability of ",
-        format_digit(verylarge * 100),
-        "% that this effect size is very large, ",
-        format_digit(large * 100),
-        "% that this effect size is large, ",
-        format_digit(medium * 100),
-        "% that this effect size is medium, ",
-        format_digit(small * 100),
-        "% that this effect size is small, ",
-        format_digit(verysmall * 100),
-        "% that this effect is very small and ",
-        format_digit(opposite_prob * 100),
-        "% that it has an opposite direction",
-        " (between 0 and ", signif(opposite_max, 2), ")."
-      )
-
-      values[[varname]]$EffSize <- EffSize
-      values[[varname]]$EffSize_text <- EffSize_text
-
-      values[[varname]]$EffSize_VL <- verylarge
-      values[[varname]]$EffSize_L <- large
-      values[[varname]]$EffSize_M <- medium
-      values[[varname]]$EffSize_S <- small
-      values[[varname]]$EffSize_VS <- verysmall
-      values[[varname]]$EffSize_O <- opposite_prob
-
       if (varname == "R2") {
-        values[[varname]]$EffSize <- NA
-        values[[varname]]$EffSize_text <- NA
+        values$effects[[varname]]$EffSize <- NA
+        values$effects[[varname]]$EffSize_text <- NA
+        values$effects[[varname]]$EffSize_VL <- NA
+        values$effects[[varname]]$EffSize_L <- NA
+        values$effects[[varname]]$EffSize_M <- NA
+        values$effects[[varname]]$EffSize_S <- NA
+        values$effects[[varname]]$EffSize_VS <- NA
+        values$effects[[varname]]$EffSize_O <- NA
+      } else {
+        EffSize <- interpret_d_posterior(posteriors[, varname])
 
-        values[[varname]]$EffSize_VL <- NA
-        values[[varname]]$EffSize_L <- NA
-        values[[varname]]$EffSize_M <- NA
-        values[[varname]]$EffSize_S <- NA
-        values[[varname]]$EffSize_VS <- NA
-        values[[varname]]$EffSize_O <- NA
+        EffSize_table <- EffSize$table
+        EffSize_table$Variable <- varname
+        EffSizes <- rbind(EffSizes, EffSize_table)
+
+        values$effects[[varname]]$EffSize <- EffSize_table
+        values$effects[[varname]]$EffSize_text <- EffSize$text
+
+        values$effects[[varname]]$EffSize_VL <- EffSize$probs$VeryLarge
+        values$effects[[varname]]$EffSize_L <- EffSize$probs$Large
+        values$effects[[varname]]$EffSize_M <- EffSize$probs$Medium
+        values$effects[[varname]]$EffSize_S <- EffSize$probs$Small
+        values$effects[[varname]]$EffSize_VS <- EffSize$probs$VerySmall
+        values$effects[[varname]]$EffSize_O <- EffSize$probs$Opposite
       }
     }
   }
 
 
-  # Summary
-  # -------------
-  MPEs <- c()
-  for (varname in names(values)) {
-    MPEs <- c(MPEs, values[[varname]]$MPE)
-  }
-  medians <- c()
-  for (varname in names(values)) {
-    medians <- c(medians, values[[varname]]$median)
-  }
-  mads <- c()
-  for (varname in names(values)) {
-    mads <- c(mads, values[[varname]]$mad)
-  }
-  means <- c()
-  for (varname in names(values)) {
-    means <- c(means, values[[varname]]$mean)
-  }
-  sds <- c()
-  for (varname in names(values)) {
-    sds <- c(sds, values[[varname]]$sd)
-  }
-  CIs <- c()
-  for (varname in names(values)) {
-    CIs <- c(CIs, values[[varname]]$CI_values)
+
+  # Overlap coef ------------------------------------------------------------
+  # -------------------------------------------------------------------------
+  if (overlap == TRUE) {
+    for (varname in varnames) {
+      posterior <- posteriors[, varname]
+      norm <- rnorm(length(posterior), 0, sd(posterior))
+
+      overlap_coef <- overlap(posterior, norm) * 100
+
+      values$effects[[varname]]$overlap_coef <- overlap_coef
+    }
   }
 
-  summary <- data.frame(
-    Variable = names(values),
-    MPE = MPEs,
-    Median = medians,
-    MAD = mads,
-    Mean = means,
-    SD = sds,
-    CI_lower = CIs[seq(1, length(CIs), 2)],
-    CI_higher = CIs[seq(2, length(CIs), 2)]
-  )
-  names(summary) <- c("Variable", "MPE", "Median", "MAD", "Mean", "SD", paste0(CI, "_CI_lower"), paste0(CI, "_CI_higher"))
 
-  if (effsize == T) {
+  # Summary --------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
+  if (R2 == TRUE) {
+    varnames_for_summary <- varnames
+  } else {
+    varnames_for_summary <- varnames[varnames != "R2"]
+  }
+
+  summary <- data.frame()
+  for (varname in varnames_for_summary) {
+    summary <- rbind(
+      summary,
+      data.frame(
+        Variable = varname,
+        MPE = values$effects[[varname]]$MPE,
+        Median = values$effects[[varname]]$median,
+        MAD = values$effects[[varname]]$mad,
+        Mean = values$effects[[varname]]$mean,
+        SD = values$effects[[varname]]$sd,
+        CI_lower = values$effects[[varname]]$CI_values[1],
+        CI_higher = values$effects[[varname]]$CI_values[2]
+      )
+    )
+  }
+
+  if (effsize == TRUE) {
     EffSizes <- data.frame()
-    for (varname in names(values)) {
+    for (varname in varnames_for_summary) {
       Current <- data.frame(
-        Very_Large = values[[varname]]$EffSize_VL,
-        Large = values[[varname]]$EffSize_L,
-        Medium = values[[varname]]$EffSize_M,
-        Small = values[[varname]]$EffSize_S,
-        Very_Small = values[[varname]]$EffSize_VS,
-        Opposite = values[[varname]]$EffSize_O
+        Very_Large = values$effects[[varname]]$EffSize_VL,
+        Large = values$effects[[varname]]$EffSize_L,
+        Medium = values$effects[[varname]]$EffSize_M,
+        Small = values$effects[[varname]]$EffSize_S,
+        Very_Small = values$effects[[varname]]$EffSize_VS,
+        Opposite = values$effects[[varname]]$EffSize_O
       )
       EffSizes <- rbind(EffSizes, Current)
     }
@@ -345,32 +353,77 @@ analyze.stanreg <- function(x, CI=95, effsize=FALSE, verbose=T, ...) {
 
 
 
-  # Text
-  # -------------
+  if (overlap == TRUE) {
+    summary$Overlap <- NA
+    for (varname in varnames_for_summary) {
+      summary[summary$Variable == varname, ]$Overlap <- values$effects[[varname]]$overlap_coef
+    }
+  }
+
+  # Text --------------------------------------------------------------------
+  # -------------------------------------------------------------------------
+
   # Model
+  if (effsize == TRUE) {
+    info_effsize <- " Effect sizes are based on Cohen (1988) recommandations."
+  } else {
+    info_effsize <- ""
+  }
+
+
   info <- paste0(
-    "We fitted a Markov Chain Monte Carlo [type] model to predict",
-    "[Y] with [X] (formula = ", format(fit$formula),
+    "We fitted a Markov Chain Monte Carlo ",
+    fit$family$family,
+    " (link = ",
+    fit$family$link,
+    ") model to predict ",
+    outcome,
+    " (formula = ", paste0(format(fit$formula), collapse = ""),
     ").",
-    "Priors were set as follow: [INSERT INFO ABOUT PRIORS]."
+    info_effsize,
+    " The model's priors were set as follows: "
+  )
+
+  # Priors
+  text_priors <- rstanarm::prior_summary(fit)
+  if ("adjusted_scale" %in% names(text_priors$prior) & !is.null(text_priors$prior$adjusted_scale)) {
+    scale <- paste0(
+      "), scale = (",
+      paste(sapply(text_priors$prior$adjusted_scale, format_digit), collapse = ", ")
+    )
+  } else {
+    scale <- paste0(
+      "), scale = (",
+      paste(sapply(text_priors$prior$scale, format_digit), collapse = ", ")
+    )
+  }
+
+  info_priors_text <- paste0(
+    "  ~ ",
+    text_priors$prior$dist,
+    " (location = (",
+    paste(text_priors$prior$location, collapse = ", "),
+    scale,
+    "))"
   )
 
   # Coefs
   coefs_text <- c()
-  for (varname in names(values)) {
-    coefs_text <- c(coefs_text, values[[varname]]$text)
-    if (effsize == T) {
-      if (varname != "R2") {
-        coefs_text <- c(coefs_text, values[[varname]]$EffSize_text, "")
+  for (varname in varnames) {
+    coefs_text <- c(coefs_text, values$effects[[varname]]$text)
+    if (effsize == TRUE) {
+      if (!varname %in% c("(Intercept)", "R2")) {
+        coefs_text <- c(coefs_text, values$effects[[varname]]$EffSize_text)
       }
     }
   }
-  text <- c(info, "", head(coefs_text, -1), "", tail(coefs_text, 1))
+  text <- c(info, "", info_priors_text, "", "", paste0(tail(coefs_text, 1), head(coefs_text, 1)), "", head(tail(coefs_text, -1), -1))
 
 
 
-  # Plot
-  # -------------
+  # Plot --------------------------------------------------------------------
+  # -------------------------------------------------------------------------
+
   plot <- posteriors[varnames] %>%
     # select(-`(Intercept)`) %>%
     gather() %>%
@@ -388,6 +441,7 @@ analyze.stanreg <- function(x, CI=95, effsize=FALSE, verbose=T, ...) {
     coord_flip() +
     scale_fill_brewer(palette = "Set1") +
     scale_colour_brewer(palette = "Set1")
+
 
 
   output <- list(text = text, plot = plot, summary = summary, values = values)

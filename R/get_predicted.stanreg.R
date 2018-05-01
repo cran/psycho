@@ -3,12 +3,13 @@
 #' Compute predicted from a stanreg model.
 #'
 #' @param fit A stanreg model.
-#' @param prob Probability of credible intervals (0.9 (default) will compute
-#' 5-95\% CI).
-#' @param draws Precision of the estimate.
-#' @param newdf Should the predictions be based on actual data or,
-#' generate a new dataframe based on all combinations of values
-#' @param precision Precision of the new dataframe to be generated.
+#' @param newdata A data frame in which to look for variables with which to predict. If omitted, the model matrix is used. If "model", the model's data is used.
+#' @param prob Probability of credible intervals (0.9 (default) will compute 5-95\% CI). Can also be a list of probs (e.g., c(0.90, 0.95)).
+#' @param keep_iterations Keep all prediction iterations.
+#' @param draws An integer indicating the number of draws to return. The default and maximum number of draws is the size of the posterior sample.
+#' @param odds_to_probs Transform log odds ratios in logistic models to probabilies.
+#' @param posterior_predict Posterior draws of the outcome instead of the link function (i.e., the regression "line").
+#' @param seed An optional seed to use.
 #' @param ... Arguments passed to or from other methods.
 #'
 #'
@@ -18,102 +19,133 @@
 #' @examples
 #' \dontrun{
 #' library(psycho)
+#' library(ggplot2)
 #' require(rstanarm)
-#' fit <- rstanarm::stan_glm(vs ~ mpg * cyl, data=mtcars)
 #'
-#' predicted <- get_predicted(fit)
+#' fit <- rstanarm::stan_glm(Tolerating ~ Adjusting, data=affective, iter=500)
+#'
+#' refgrid <- emmeans::ref_grid(fit, at=list(
+#'     Adjusting=seq(min(affective$Adjusting), max(affective$Adjusting), length.out=10)))
+#'
+#' predicted <- get_predicted(fit, newdata=refgrid)
+#'
+#' ggplot(predicted, aes(x=Adjusting, y=Tolerating_Median)) +
+#'   geom_line() +
+#'   geom_ribbon(aes(ymin=Tolerating_CI_5,
+#'                   ymax=Tolerating_CI_95),
+#'                   alpha=0.1)
+#'
+#' fit <- rstanarm::stan_glm(Sex ~ Adjusting, data=affective, family="binomial", iter=500)
+#'
+#' refgrid <- emmeans::ref_grid(fit, at=list(
+#'     Adjusting=seq(min(affective$Adjusting), max(affective$Adjusting), length.out=10)))
+#'
+#' predicted <- get_predicted(fit, newdata=refgrid)
+#'
+#' ggplot(predicted, aes(x=Adjusting, y=Sex_Median)) +
+#'   geom_line() +
+#'   geom_ribbon(aes(ymin=Sex_CI_5,
+#'                   ymax=Sex_CI_95),
+#'                   alpha=0.1)
+#'
 #' }
 #' @author \href{https://dominiquemakowski.github.io/}{Dominique Makowski}
 #'
 #' @method get_predicted stanreg
 #' @import rstanarm
-#' @importFrom stats median
-#'
+#' @importFrom stats median family model.matrix
+#' @importFrom dplyr bind_cols
+#' @importFrom tibble rownames_to_column
 #' @export
-get_predicted.stanreg <- function(fit, prob=0.9, draws=500, newdf=FALSE, precision=10, ...) {
-  data <- fit$data
-  formula <- as.character(fit$formula)
+get_predicted.stanreg <- function(fit, newdata="model", prob=0.9, keep_iterations=FALSE, draws=NULL, odds_to_probs=TRUE, posterior_predict=FALSE, seed=NULL, ...) {
+
+  # Extract names
   predictors <- all.vars(fit$formula)
   outcome <- predictors[[1]]
   predictors <- tail(predictors, -1)
-  n_predictors <- length(predictors)
-  length_out <- precision
 
+  # Set newdata if refgrid
+  if ("emmGrid" %in% class(newdata)) {
+    newdata <- newdata@grid
+    newdata[".wgt."] <- NULL
+  }
 
-  if (newdf == T) {
-    info <- list()
-    for (var in predictors) {
-      info[[var]] <- list()
+  # Deal with potential random
+  re.form <- NULL
+  if (!is.null(newdata)) {
+    if (!is.character(newdata) & is.mixed(fit)) {
+      re.form <- NA
+    }
+  }
 
-      if (is.factor(data[[var]])) {
-        info[[var]]$type <- "factor"
-        info[[var]]$uniques <- unique(data[[var]])
-        info[[var]]$data <- rep(info[[var]]$uniques, length.out = length_out)
-      } else {
-        info[[var]]$type <- "num"
-        info[[var]]$min <- min(data[[var]])
-        info[[var]]$max <- max(data[[var]])
-        info[[var]]$data <- seq(info[[var]]$min, info[[var]]$max, length.out = length_out)
-        info[[var]]$uniques <- unique(info[[var]]$data)
+  # Set newdata to actual data
+  original_data <- FALSE
+  if (!is.null(newdata)) {
+    if (is.character(newdata)) {
+      if (newdata == "model") {
+        original_data <- TRUE
+        newdata <- fit$data[predictors]
+        newdata <- na.omit(fit$data[predictors])
       }
     }
+  }
 
-    predicted <- data.frame()
-    for (var in predictors) {
-      other_predictors <- predictors[predictors != var]
-
-      for (value in info[[var]]$uniques) {
-        temp <- data.frame("x" = rep(NA, length.out = length_out))
-        temp[var] <- rep(value, length.out = length_out)
-
-        for (other_pred in other_predictors) {
-          temp[other_pred] <- info[[other_pred]]$data
-        }
-
-        predicted <- rbind(predicted, temp)
-      }
-    }
-    predicted <- dplyr::select_(predicted, "-x")
+  # Generate draws -------------------------------------------------------
+  if (posterior_predict == F) {
+    posterior <- rstanarm::posterior_linpred(fit, newdata = newdata, re.form = re.form, seed = seed)
   } else {
-    predicted <- NULL
+    posterior <- rstanarm::posterior_predict(fit, newdata = newdata, re.form = re.form, seed = seed)
+  }
+
+  # Format -------------------------------------------------------
+
+  # Predicted Y
+  pred_y <- as.data.frame(apply(posterior, 2, median))
+  names(pred_y) <- paste0(outcome, "_Median")
+
+  # Credible Interval
+  for (CI in c(prob)) {
+    pred_y_interval <- hdi(posterior, prob = CI)
+    names(pred_y_interval) <- paste(outcome, "CI", c((1 - CI) / 2 * 100, 100 - ((1 - CI) / 2 * 100)), sep = "_")
+    pred_y <- cbind(pred_y, pred_y_interval)
   }
 
 
+  # Keep iterations ---------------------------------------------------------
 
-  pred_y_post <- as.data.frame(rstanarm::posterior_predict(fit, newdata = predicted, draws = 500))
-  pred_y <- c()
-
-
-  for (i in pred_y_post) {
-    pred_y <- c(pred_y, median(i))
+  if (keep_iterations == TRUE) {
+    iterations <- as.data.frame(t(posterior))
+    names(iterations) <- paste0("iter_", 1:length(names(iterations)))
+    pred_y <- cbind(pred_y, iterations)
   }
-  pred_y <- as.data.frame(pred_y)
-  names(pred_y) <- paste0("pred_", outcome, "_median")
 
-  pred_y_interval <- as.data.frame(rstanarm::posterior_interval(rstanarm::posterior_predict(fit, newdata = predicted, draws = draws), prob = prob, draws = draws))
-  names(pred_y_interval) <- paste("pred", outcome, names(pred_y_interval), sep = "_")
+  # Transform odds to probs ----------------------------------------------------------
 
-  pred_y <- cbind(pred_y_interval, pred_y)
+  if (family(fit)$family == "binomial" & family(fit)$link == "logit") {
+    pred_y <- odds_to_probs(pred_y)
+  }
 
-  # If Binary, add proba
-  if (length(unique(data[[outcome]])) == 2 & 0 %in% unique(data[[outcome]]) & 1 %in% unique(data[[outcome]])) {
-    pred_y_proba <- c()
-    for (i in pred_y_post) {
-      pred_y_proba <- c(pred_y_proba, mean(i))
+
+  # Add predictors ----------------------------------------------------------
+
+
+  if (!is.null(newdata)) {
+    if (original_data) {
+      predicted <- newdata %>%
+        tibble::rownames_to_column() %>%
+        dplyr::bind_cols(pred_y) %>%
+        dplyr::right_join(fit$data[!names(fit$data) %in% predictors] %>%
+          tibble::rownames_to_column(),
+        by = "rowname"
+        ) %>%
+        select_("-rowname")
+    } else {
+      predicted <- dplyr::bind_cols(newdata, pred_y)
     }
-    pred_y_proba <- as.data.frame(pred_y_proba)
-    names(pred_y_proba) <- paste0("pred_", outcome, "_probability")
-    pred_y <- cbind(pred_y, pred_y_proba)
-  }
-
-
-
-  if (newdf == T) {
-    predicted <- cbind(predicted, pred_y)
   } else {
-    predicted <- data
-    predicted <- cbind(predicted, pred_y)
+    predicted <- dplyr::bind_cols(as.data.frame(model.matrix(fit)), pred_y)
   }
+
 
   return(predicted)
 }

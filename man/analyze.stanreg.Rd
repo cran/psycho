@@ -4,7 +4,8 @@
 \alias{analyze.stanreg}
 \title{Analyze stanreg objects.}
 \usage{
-\method{analyze}{stanreg}(x, CI = 95, effsize = FALSE, verbose = T, ...)
+\method{analyze}{stanreg}(x, CI = 90, effsize = FALSE, overlap = TRUE,
+  ...)
 }
 \arguments{
 \item{x}{A stanreg model.}
@@ -13,7 +14,7 @@
 
 \item{effsize}{Compute Effect Sizes according to Cohen (1988)? Your outcome variable must be standardized.}
 
-\item{verbose}{Toggle warnings display.}
+\item{overlap}{Compute the overlapping coefficient between the posterior and a normal distribution of mean 0 and same SD.}
 
 \item{...}{Arguments passed to or from other methods.}
 }
@@ -26,20 +27,19 @@ Analyze stanreg objects.
 \examples{
 \dontrun{
 library(psycho)
-require(rstanarm)
-fit <- rstanarm::stan_glm(vs ~ mpg * cyl, data=mtcars)
+library(rstanarm)
 
-results <- analyze(fit)
-summary(results)
+data <- standardize(attitude)
+fit <- rstanarm::stan_glm(rating ~ advance + privileges, data=data)
 
-data <- normalize(attitude)
-fit <- rstanarm::stan_lm(rating ~ advance + privileges + learning + raises,
-                         data=data, prior=R2(1))
-
-results <- analyze(fit)
+results <- analyze(fit, effsize=TRUE)
 summary(results)
 plot(results)
 print(results)
+
+fit <- rstanarm::stan_glmer(Sepal.Length ~ Sepal.Width + (1|Species), data=iris)
+results <- analyze(fit)
+summary(results)
 }
 
 }

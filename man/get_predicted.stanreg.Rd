@@ -4,21 +4,26 @@
 \alias{get_predicted.stanreg}
 \title{Compute predicted values of stanreg models.}
 \usage{
-\method{get_predicted}{stanreg}(fit, prob = 0.9, draws = 500,
-  newdf = FALSE, precision = 10, ...)
+\method{get_predicted}{stanreg}(fit, newdata = "model", prob = 0.9,
+  keep_iterations = FALSE, draws = NULL, odds_to_probs = TRUE,
+  posterior_predict = FALSE, seed = NULL, ...)
 }
 \arguments{
 \item{fit}{A stanreg model.}
 
-\item{prob}{Probability of credible intervals (0.9 (default) will compute
-5-95\% CI).}
+\item{newdata}{A data frame in which to look for variables with which to predict. If omitted, the model matrix is used. If "model", the model's data is used.}
 
-\item{draws}{Precision of the estimate.}
+\item{prob}{Probability of credible intervals (0.9 (default) will compute 5-95\% CI). Can also be a list of probs (e.g., c(0.90, 0.95)).}
 
-\item{newdf}{Should the predictions be based on actual data or,
-generate a new dataframe based on all combinations of values}
+\item{keep_iterations}{Keep all prediction iterations.}
 
-\item{precision}{Precision of the new dataframe to be generated.}
+\item{draws}{An integer indicating the number of draws to return. The default and maximum number of draws is the size of the posterior sample.}
+
+\item{odds_to_probs}{Transform log odds ratios in logistic models to probabilies.}
+
+\item{posterior_predict}{Posterior draws of the outcome instead of the link function (i.e., the regression "line").}
+
+\item{seed}{An optional seed to use.}
 
 \item{...}{Arguments passed to or from other methods.}
 }
@@ -31,10 +36,35 @@ Compute predicted from a stanreg model.
 \examples{
 \dontrun{
 library(psycho)
+library(ggplot2)
 require(rstanarm)
-fit <- rstanarm::stan_glm(vs ~ mpg * cyl, data=mtcars)
 
-predicted <- get_predicted(fit)
+fit <- rstanarm::stan_glm(Tolerating ~ Adjusting, data=affective, iter=500)
+
+refgrid <- emmeans::ref_grid(fit, at=list(
+    Adjusting=seq(min(affective$Adjusting), max(affective$Adjusting), length.out=10)))
+
+predicted <- get_predicted(fit, newdata=refgrid)
+
+ggplot(predicted, aes(x=Adjusting, y=Tolerating_Median)) +
+  geom_line() +
+  geom_ribbon(aes(ymin=Tolerating_CI_5,
+                  ymax=Tolerating_CI_95),
+                  alpha=0.1)
+
+fit <- rstanarm::stan_glm(Sex ~ Adjusting, data=affective, family="binomial", iter=500)
+
+refgrid <- emmeans::ref_grid(fit, at=list(
+    Adjusting=seq(min(affective$Adjusting), max(affective$Adjusting), length.out=10)))
+
+predicted <- get_predicted(fit, newdata=refgrid)
+
+ggplot(predicted, aes(x=Adjusting, y=Sex_Median)) +
+  geom_line() +
+  geom_ribbon(aes(ymin=Sex_CI_5,
+                  ymax=Sex_CI_95),
+                  alpha=0.1)
+
 }
 }
 \author{

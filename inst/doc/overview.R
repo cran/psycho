@@ -1,7 +1,7 @@
 ## ---- echo=F, message=FALSE, warning=FALSE-------------------------------
 library(knitr)
-library(tidyverse)
-library(broom)
+library(dplyr)
+library(ggplot2)
 library(rstanarm)
 
 ## ---- eval = FALSE-------------------------------------------------------
@@ -11,7 +11,7 @@ library(rstanarm)
 #  # Or this for the dev version:
 #  install.packages("devtools")
 #  library(devtools)
-#  devtools::install_github("https://github.com/neuropsychology/psycho.R")
+#  devtools::install_github("neuropsychology/psycho.R")
 
 ## ------------------------------------------------------------------------
 library(psycho)
@@ -24,10 +24,11 @@ library(psycho)
 
 df <- iris
 
-cor <- psycho::correlation(df, 
-                           type = "full",
-                           method = "pearson",
-                           adjust = "none")
+cor <- psycho::correlation(df,
+  type = "full",
+  method = "pearson",
+  adjust = "none"
+)
 
 summary(cor)
 
@@ -42,10 +43,11 @@ library(psycho)
 
 df <- iris
 
-pcor <- psycho::correlation(df, 
-                           type = "partial",
-                           method = "pearson",
-                           adjust = "bonferroni")
+pcor <- psycho::correlation(df,
+  type = "partial",
+  method = "pearson",
+  adjust = "bonferroni"
+)
 
 summary(pcor)
 
@@ -54,24 +56,26 @@ print(pcor)
 
 ## ---- out.width=8, eval = TRUE, fig.align='center', results='markup', comment=NA----
 library(psycho)
-library(tidyverse)
+library(dplyr)
 
-iris %>% 
-  select(Species, Sepal.Length, Petal.Length) %>% 
-  psycho::standardize() %>% 
+iris %>%
+  dplyr::select(Species, Sepal.Length, Petal.Length) %>%
+  psycho::standardize() %>%
   summary()
 
 ## ---- out.width=8, eval = TRUE, fig.align='center', results='hide', comment=NA----
 library(psycho)
 
 # Let's simulate three participants with different results at a perceptual detection task
-df <- data.frame(Participant = c("A", "B", "C"),
-                 n_hit = c(1, 2, 5),
-                 n_miss = c(6, 8, 1),
-                 n_fa = c(1, 3, 5), 
-                 n_cr = c(4, 8, 9))
+df <- data.frame(
+  Participant = c("A", "B", "C"),
+  n_hit = c(1, 2, 5),
+  n_fa = c(1, 3, 5),
+  n_miss = c(6, 8, 1),
+  n_cr = c(4, 8, 9)
+)
 
-indices <- psycho::dprime(df$n_hit, df$n_miss, df$n_fa, df$n_cr)
+indices <- psycho::dprime(df$n_hit, df$n_fa, df$n_miss, df$n_cr)
 df <- cbind(df, indices)
 
 ## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
@@ -80,7 +84,7 @@ kable(df)
 ## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center', comment=NA----
 library(psycho)
 
-results <- psycho::assess(124, mean=100, sd=15)
+results <- psycho::assess(124, mean = 100, sd = 15)
 
 # Print it
 print(results)
@@ -91,7 +95,7 @@ plot(results)
 ## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'----
 library(psycho)
 
-results <- psycho::assess(85, mean=100, sd=15, linecolor = "orange", fillcolor = "#4CAF50")
+results <- psycho::assess(85, mean = 100, sd = 15, linecolor = "orange", fillcolor = "#4CAF50")
 
 # Plot it
 plot(results)
@@ -103,28 +107,37 @@ library(psycho)
 p <- plot(psycho::correlation(iris))
 
 # Custom theme and colours
-p <- p + 
+p <- p +
   scale_fill_gradientn(colors = c("#4CAF50", "#FFEB3B", "#FF5722")) +
   ylab("Variables\n") +
   labs(fill = "r") +
-  theme(plot.background = element_rect(fill = "#607D8B"),
-        axis.title.y = element_text(size = 20, angle = 90, colour="white"),
-        axis.text = element_text(size = 15, colour="white"),
-        legend.title = element_text(size = 20, colour="white"),
-        legend.text = element_text(size = 15, colour="white"),
-        title = element_text(size = 16, colour="white"))
+  theme(
+    plot.background = element_rect(fill = "#607D8B"),
+    axis.title.y = element_text(size = 20, angle = 90, colour = "white"),
+    axis.text = element_text(size = 15, colour = "white"),
+    legend.title = element_text(size = 20, colour = "white"),
+    legend.text = element_text(size = 15, colour = "white"),
+    title = element_text(size = 16, colour = "white")
+  )
 p
-
 
 ## ----echo=TRUE, message=FALSE, warning=FALSE, results='markup'-----------
 library(psycho)
 
-case1 <- 82 # The IQ of a patient
-case2 <- 61 # The IQ of another patient
+case <- 61 # The IQ of a patient
 controls <- c(86, 100, 112, 95, 121, 102) # The IQs of a control group
 
-rez <- crawford.test(case1, controls)
-rez <- crawford.test(case2, controls)
+rez <- crawford.test(case, controls)
+
+## ----echo=TRUE, message=FALSE, warning=FALSE, results='markup'-----------
+library(psycho)
+
+case_X <- 132
+case_Y <- 7
+controls_X <- c(100, 125, 89, 105, 109, 99)
+controls_Y <- c(7, 8, 9, 6, 7, 10)
+
+rez <- crawford_dissociation.test(case_X, case_Y, controls_X, controls_Y)
 
 ## ----echo=TRUE, message=FALSE, warning=FALSE, results='markup'-----------
 library(psycho)
@@ -141,7 +154,7 @@ rez <- mellenbergh.test(t0, t1, controls = 15)
 
 ## ----echo=TRUE, message=FALSE, warning=FALSE, results='hide'-------------
 results <- attitude %>%
-  select_if(is.numeric) %>% 
+  dplyr::select_if(is.numeric) %>%
   psycho::n_factors()
 
 # Get a summary
@@ -160,37 +173,31 @@ kable(psycho::values(results)$methods)
 plot(results)
 
 ## ---- results='hide'-----------------------------------------------------
-set.seed(666)
-df <- data.frame(Participant = as.factor(rep(1:25, each = 4)), 
-                 Item = rep_len(c("i1", "i2", "i3", "i4"), 100), 
-                 Condition = rep_len(c("A", "B", "A", "B", "B"), 20), 
-                 Error = as.factor(sample(c(0, 1), 100, replace = T)),
-                 RT = rnorm(100, 30, .2), 
-                 Stress = runif(100, 3, 5))
+df <- psycho::emotion
 
-# Standardize the numeric variables.
-df <- psycho::standardize(df)
+# Stabdardize the outcome
+df$Subjective_Arousal <- psycho::standardize(df$Subjective_Arousal)
 
 # Take a look  at the first 10 rows
 head(df)
 
 ## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
-kable(head(df))
+knitr::kable(head(df))
 
 ## ----message=FALSE, warning=FALSE, results='markup', comment=NA----------
 # Format data
-df_for_anova <- df %>% 
-  dplyr::group_by(Participant, Condition) %>% 
-  dplyr::summarise(RT = mean(RT))
+df_for_anova <- df %>%
+  dplyr::group_by(Participant_ID, Emotion_Condition) %>%
+  dplyr::summarise(Subjective_Arousal = mean(Subjective_Arousal))
 
 # Run the anova
-anova <- aov(RT ~ Condition + Error(Participant), df_for_anova)
-summary(anova)
+aov_results <- aov(Subjective_Arousal ~ Emotion_Condition + Error(Participant_ID), df_for_anova)
+summary(aov_results)
 
 ## ----fig.align='center', message=FALSE, warning=FALSE, val=TRUE, results='markup', comment=NA----
-library(lme4)
+library(lmerTest)
 
-fit <- lme4::lmer(RT ~ Condition + (1|Participant) + (1|Item), data=df)
+fit <- lmerTest::lmer(Subjective_Arousal ~ Emotion_Condition + (1|Participant_ID) + (1|Item_Name), data = df)
 
 # Traditional output
 summary(fit)
@@ -202,7 +209,7 @@ results <- psycho::analyze(fit)
 summary(results, round = 2)
 
 ## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
-kable(summary(results, round = 2))
+knitr::kable(summary(results, round = 2))
 
 ## ---- results='markup', comment=NA---------------------------------------
 print(results)
@@ -210,62 +217,18 @@ print(results)
 ## ----fig.align='center', message=FALSE, warning=FALSE, val=TRUE, results='hide'----
 library(rstanarm)
 
-fit <- rstanarm::stan_lmer(RT ~ Condition + (1|Participant) + (1|Item), data=df)
+fit <- rstanarm::stan_lmer(Subjective_Arousal ~ Emotion_Condition + (1|Participant_ID) + (1|Item_Name), data = df)
 
 # Traditional output
-results <- psycho::analyze(fit, effsize=T)
-summary(results, round=2)
+results <- psycho::analyze(fit, effsize = TRUE)
+summary(results, round = 2)
 
 ## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
-kable(summary(results, round = 2))
+knitr::kable(summary(results, round = 2))
 
 ## ---- results='markup', comment=NA---------------------------------------
 print(results)
 
 ## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'----
 plot(results)
-
-## ---- results='hide'-----------------------------------------------------
-library(psycho)
-
-set.seed(666)
-fit <- rstanarm::stan_glm(Sepal.Width ~ Sepal.Length + Petal.Width, data=iris)
-predicted_data <- psycho::get_predicted(fit)
-
-## ---- results='markup', comment=NA---------------------------------------
-names(predicted_data)
-
-## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'----
-ggplot(predicted_data, aes(x=Sepal.Width, y=pred_Sepal.Width_median)) +
-  geom_point() +
-  geom_smooth(method="lm")
-
-## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'----
-new_data <- psycho::get_predicted(fit, newdf=T) %>% 
-  group_by(Sepal.Length, Petal.Width) %>% 
-  summarise_all(mean)
-
-ggplot(new_data, aes(x=Sepal.Length, y=pred_Sepal.Width_median, alpha=Petal.Width, group=Petal.Width)) +
-  geom_point() +
-  geom_line()
-
-## ----echo=FALSE, message=FALSE, warning=FALSE, results='hide'------------
-summary(analyze(fit), 2)
-
-## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
-kable(summary(analyze(fit), 2))
-
-## ---- results='hide'-----------------------------------------------------
-set.seed(666)
-names(iris)
-fit <- rstanarm::stan_glm(Sepal.Width ~ Sepal.Length * Petal.Width, data=iris)
-
-new_data <- psycho::get_predicted(fit, newdf=T) %>% 
-  group_by(Sepal.Length, Petal.Width) %>% 
-  summarise_all(mean)
-
-## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center'----
-ggplot(new_data, aes(x=Sepal.Length, y=pred_Sepal.Width_median, alpha=Petal.Width, group=Petal.Width)) +
-  geom_point() +
-  geom_line()
 
