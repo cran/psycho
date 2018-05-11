@@ -1,5 +1,25 @@
 # Current Dev
 
+
+
+### Breaking changes
+- `mellenbergh.test`, `crawford.test` and `crawford.test.freq` now return a psychobject
+- `assess` has been refactored to become a wrapper for `crawford.test`
+- `crawford.test` now computes the Bayesian version
+- `crawford.test` has been renamed to `crawford.test.freq`
+### New functions / parameters
+- Added `i_am_cheating` parameter to `correlation` to prevent p-hacking
+- Added `percentile` and `percentile_to_z` functions
+- Added `as.data.frame` method for density objects
+- Added Crawford-Garthwaite (2007) Bayesian test for single-case analysis
+- Added `rnorm_perfect` function
+### Changes
+- logo
+
+
+
+# [0.2.0](https://github.com/neuropsychology/psycho.R/releases/tag/0.2.0) (2018-05-01)
+
 ### Breaking changes
 - Set default overlap parameter to TRUE in `analyze.stanreg` 
 - Remove support of lmerMod objects (linear mixed models must be fitted with lmerTest)
