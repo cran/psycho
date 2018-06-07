@@ -11,4 +11,8 @@ test_that("Formatting works as expected", {
   testthat::expect_equal(format_digit(1.1587), "1.16")
   testthat::expect_equal(format_digit(12), "12")
   testthat::expect_equal(format_digit(1.101), "1.10")
+  testthat::expect_equal(format_digit(9e+10), "Inf.")
+
+  testthat::expect_equal(format_p(0.00000), "< .001***")
+  testthat::expect_equal(format_p(0.00000, stars = FALSE), "< .001")
 })

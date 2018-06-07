@@ -2,14 +2,18 @@
 % Please edit documentation in R/interpret_bf.R
 \name{interpret_bf}
 \alias{interpret_bf}
-\title{Return the interpretation of a Bayes Factor.}
+\title{Bayes Factor Interpretation}
 \usage{
-interpret_bf(x, label_only = FALSE)
+interpret_bf(x, direction = TRUE, bf = TRUE, rules = "jeffreys1961")
 }
 \arguments{
 \item{x}{Bayes Factor.}
 
-\item{label_only}{Keep only the size classification.}
+\item{direction}{Include direction (against / in favour).}
+
+\item{bf}{Include Bayes Factor.}
+
+\item{rules}{Can be "jeffreys1961" (default), "raftery1995", or a custom list.}
 }
 \value{
 The interpretation according to Jeffreys (1961).
@@ -19,7 +23,7 @@ Return the interpretation of a Bayes Factor.
 }
 \examples{
 library(psycho)
-interpret_bf(10)
+interpret_bf(x=10)
 
 }
 \references{

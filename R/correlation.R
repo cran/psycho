@@ -55,13 +55,18 @@ correlation <- function(df,
 
   # Processing
   # -------------------
+  if (method == "bayes" | method == "bayesian") {
+    return(bayes_cor(df, df2, reorder = TRUE))
+  }
+
+
   # N samples
   n <- nrow(df)
 
   # Remove non numeric
-  df <- df[, sapply(df, is.numeric)]
+  df <- purrr::keep(df, is.numeric)
   if (is.null(df2) == FALSE) {
-    df2 <- df2[, sapply(df2, is.numeric)]
+    df2 <- purrr::keep(df2, is.numeric)
   }
 
   # P-fishing prevention
@@ -119,7 +124,7 @@ correlation <- function(df,
       ci.adj <- "Not available for glasso estimation."
     }
     else if (type == "cor_auto") {
-      corr <- qgraph::cor_auto(df, forcePD = F)
+      corr <- qgraph::cor_auto(df, forcePD = FALSE)
       r <- corr
       p <- NULL
       t <- NULL
@@ -135,9 +140,9 @@ correlation <- function(df,
 
 
   # Adjust P values
-  if (is.null(p) == F) {
+  if (is.null(p) == FALSE) {
     if (adjust != "none") {
-      if ((type == "full" & is.null(df2) == F) | (type == "semi")) {
+      if ((type == "full" & is.null(df2) == FALSE) | (type == "semi")) {
         p <- p.adjust(p, method = adjust)
       } else {
         p[lower.tri(p)] <- p.adjust(p[lower.tri(p)], method = adjust, n = choose(nrow(p), 2))
@@ -161,39 +166,38 @@ correlation <- function(df,
   # -------------
 
   # Define notions for significance levels; spacing is important.
-  if (is.null(p) == F) {
-    mystars <- ifelse(p < .001, "***",
+  if (is.null(p) == FALSE) {
+    stars <- ifelse(p < .001, "***",
       ifelse(p < .01, "** ",
         ifelse(p < .05, "* ", " ")
       )
     )
   } else {
-    mystars <- ""
+    stars <- ""
   }
 
 
-  # trunctuate the matrix that holds the correlations to two decimal
-  r_format <- format(round(cbind(rep(-1.11, ncol(df)), r), 2))[, -1]
   # build a new correlation matrix with significance stars
-  table <- matrix(paste(r_format, mystars, sep = ""), ncol = ncol(r))
+  table <- matrix(paste0(round(r, 2), stars), ncol = ncol(r))
 
 
   # Format
   rownames(table) <- colnames(df)
   if (isSymmetric(r)) {
-    diag(table) <- paste(diag(r_format), " ", sep = "")
-    colnames(table) <- paste(colnames(df), "", sep = "")
+    diag(table) <- paste0(diag(round(r, 2)), " ")
+    colnames(table) <- colnames(df)
     table[upper.tri(table, diag = TRUE)] <- "" # remove upper triangle
     table <- as.data.frame(table)
-    summary <- cbind(table[1:length(table) - 1]) # remove last column and return the matrix (which is now a data frame)
+    # remove last column and return the matrix (which is now a data frame)
+    summary <- cbind(table[seq_len(length(table) - 1)])
   } else {
     if (is.null(df2)) {
-      colnames(table) <- paste(colnames(df), "", sep = "")
+      colnames(table) <- colnames(df)
     } else {
       if (type == "semi") {
-        colnames(table) <- paste(colnames(df), "", sep = "")
+        colnames(table) <- colnames(df)
       } else {
-        colnames(table) <- paste(colnames(df2), "", sep = "")
+        colnames(table) <- colnames(df2)
       }
     }
     table <- as.data.frame(table)
@@ -206,8 +210,8 @@ correlation <- function(df,
   # Text
   # -------------
   sentences <- c()
-  for (row in 1:nrow(r)) {
-    for (col in 1:ncol(r)) {
+  for (row in seq_len(nrow(r))) {
+    for (col in seq_len(ncol(r))) {
       if (as.matrix(table)[row, col] == "") next # skip iteration and go to next iteration
 
       val_r <- as.matrix(r)[row, col]
@@ -225,41 +229,25 @@ correlation <- function(df,
       var2 <- row.names(r)[row]
 
       if (is.numeric(val_p) & val_p <= .05) {
-        significance <- "significant and "
+        significance <- "significant "
       } else if (is.numeric(val_p) & val_p > .05) {
-        significance <- "non significant and "
+        significance <- "non significant "
       } else {
         significance <- ""
       }
 
-      if (abs(val_r) < .30) {
-        strength <- "weak"
-      } else if (abs(val_r) < .5) {
-        strength <- "moderate"
-      } else {
-        strength <- "strong"
-      }
-
-
-      if (val_r < 0) {
-        direction <- "positive"
-      } else {
-        direction <- "negative"
-      }
 
       sentence <- paste0(
         "   - ",
         var1,
-        " - ",
+        " / ",
         var2,
         ":   ",
         "Results of the ",
         stringr::str_to_title(method),
         " correlation showed a ",
         significance,
-        strength,
-        " ",
-        direction,
+        interpret_r(val_r),
         " association between ",
         var1,
         " and ",
@@ -281,9 +269,9 @@ correlation <- function(df,
     stringr::str_to_title(method),
     " ",
     stringr::str_to_title(type),
-    " Correlation (p value correction: ",
+    " correlation (p value correction: ",
     adjust,
-    "):"
+    "):\n"
   ), sentences)
 
   text <- sentences
@@ -293,7 +281,7 @@ correlation <- function(df,
 
   # Plot
   # -------------
-  if (is.null(df2) == F & type == "full") {
+  if (is.null(df2) == FALSE & type == "full") {
     corr <- psych::corr.test(cbind(df, df2), use = "pairwise", method = method, adjust = "none")
     r <- corr$r
     p <- corr$p

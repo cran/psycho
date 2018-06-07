@@ -1,5 +1,44 @@
 # Current Dev
 
+### Breaking changes
+### New functions / parameters
+### Changes
+
+
+# [0.2.7](https://github.com/neuropsychology/psycho.R/releases/tag/0.2.0) (2018-05-11)
+
+
+### Breaking changes
+- Renamed `bayesian_cor` to `bayes_cor` for consistency
+- Changed parameters name and role in `refdata`
+- Changed output of analyze.stanreg
+- effsize in analyze.stanreg default to TRUE
+- Fixed bug in `dprime`
+### New functions / parameters
+- Added `interpret_RMSEA`
+- Added `analyze.lavaan` and `analyze.aov`
+- Added `remove_empty_cols`
+- Added `model_to_priors`
+- First iteration on custom rule's sets for effects sizes
+- Added `analyze.htest` for correlations and t-tests
+- Added `interpret_R2` 
+- Added "bayesian" method for correlation matrix
+- Added `reorder_matrix`
+- Added `bayes_adj_R2` for loo-adjusted R2 in stanreg models
+- Added `get_std_posteriors` for standardized coefs in Bayesian models
+- First iteration on `bayesian_cor` for Bayesian correlation tables
+- Added standardized coefs computation to analyze.stanreg
+- Added `refdata` for reference grid creation
+- Added `rope` for region of practical equivalence
+- Added `interpret_r` for correlation coefficient interpretation
+- Added `bayesian_cor.test`, start to work on implementation of bayesian method for correlation
+- Added `find_matching_string` for fuzzy string matching
+- Added  `analyze` for psych::fa objects
+### Changes
+- Improvements on analyze.stanreg
+
+
+# [0.2.3](https://github.com/neuropsychology/psycho.R/releases/tag/0.2.0) (2018-05-11)
 
 
 ### Breaking changes
@@ -14,7 +53,13 @@
 - Added Crawford-Garthwaite (2007) Bayesian test for single-case analysis
 - Added `rnorm_perfect` function
 ### Changes
+- Improvements on analyze.stanreg
+- Fixed `draws` parameter in get_predicted.stanreg
 - logo
+
+
+
+
 
 
 
@@ -94,7 +139,7 @@
 ### New functions / parameters
 ### Major changes
 ### Minor changes
-- Added [`CONTRIBUTING.md`](https://github.com/neuropsychology/psycho.R/blob/master/CONTRIBUTING.md)
+- Added `CONTRIBUTING.md`
 - Changed `format_digit`
 - Added `except` parameter to `normalize`
 
@@ -104,7 +149,6 @@
 ### New functions / parameters
 ### Major changes
 ### Minor changes
-- Added [`CONTRIBUTING.md`](https://github.com/neuropsychology/psycho.R/blob/master/CONTRIBUTING.md)
 - Changed `format_digit`
 - Added `except` parameter to `normalize`
 

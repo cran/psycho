@@ -21,7 +21,7 @@
 |Stable|[![CRAN](https://www.r-pkg.org/badges/version/psycho)](https://CRAN.R-project.org/package=psycho)|
 |Documentation|[![Rdoc](https://www.rdocumentation.org/badges/version/psycho)](https://www.rdocumentation.org/packages/psycho)|
 |Blog|[![](https://img.shields.io/badge/blog-psycho-orange.svg?colorB=E91E63)](https://neuropsychology.github.io/psycho.R)|
-|Examples|[![](https://img.shields.io/badge/vignettes-0.2.0-orange.svg?colorB=FF5722)](https://CRAN.R-project.org/package=psycho/vignettes/overview.html)|
+|Examples|[![](https://img.shields.io/badge/vignettes-0.2.3-orange.svg?colorB=FF5722)](https://CRAN.R-project.org/package=psycho/vignettes/overview.html)|
 |Questions|[![](https://img.shields.io/badge/issue-create-purple.svg?colorB=FF9800)](https://github.com/neuropsychology/psycho.R/issues)|
 |Authors|[![](https://img.shields.io/badge/CV-D._Makowski-purple.svg?colorB=9C27B0)](https://dominiquemakowski.github.io/)|
 |Reference|[![DOI](http://joss.theoj.org/papers/10.21105/joss.00470/status.svg)](https://doi.org/10.21105/joss.00470)|
@@ -37,52 +37,29 @@ The main goal of the `psycho` package is to provide tools for psychologists, neu
 
 ## Contribute
 
-Want to get involved in the developpment of an open-source software and improve psychological science? **Join us!**
+**`psycho` is a young package in need of affection.** You can easily hop aboard the developpment of this open-source software and improve psychological science:
 
-- You need some help? You found a bug? You would like to request a new feature? 
-  Just open an [issue](https://github.com/neuropsychology/psycho.R/issues) :relaxed:
-- Want to add a feature? Correct a bug? You're more than welcome to contribute!
-- Looking for help to implement the `analyze` method for `t.test`, `cor.test` and `anova`.
-  
+- You need some help? You found a bug? You would like to request a new feature? Just open an [issue](https://github.com/neuropsychology/psycho.R/issues) :relaxed:
+- Want to add a feature? Correct a bug? You're more than welcome to [contribute](https://github.com/neuropsychology/psycho.R/blob/master/.github/CONTRIBUTING.md)!
+
+Don't be shy, try to code and submit a pull request (PR). Even if unperfect, we will help you to make a great PR!
+All contributors will be very graciously rewarded. One day.
+
 ## Examples
 
 Check examples in the following vignettes:
 - [Overview of the psycho package](https://CRAN.R-project.org/package=psycho/vignettes/overview.html)
 - [Bayesian Analysis in Psychology](https://CRAN.R-project.org/package=psycho/vignettes/bayesian.html)
 
-Or run the following:
-```r
-library(rstanarm)
-library(psycho)
+Or blog posts:
 
-df <- psycho::affective  # Load a dataset from the psycho package
-df <- standardize(df)  # Standardize all numeric variables
-
-fit <- stan_glm(Age ~ Salary, data=df)  # Fit a Bayesian linear model
-results <- analyze(fit)  # Format the output
-
-print(results)
-summary(results)
-plot(results)
-contrasts <- get_contrasts(results, "Salary")  # Compute estimated means and contrasts
-contrasts$means
-contrasts$contrasts
-
-get_predicted(fit)  # Get model prediction
-``` 
-
-
-## Features
-
-The `psycho` package can already do the following:
-
-- [x] Standardize your data
-- [x] Enlight you on how many factors to retain for a PCA
-- [x] Give you some clinically relevant info on a participant's score
-- [x] Implements methods for single-case analyses
-- [x] Compute complex correlation matrices
-- [x] Compute signal detection theory indices (d', beta, ...)
-- [x] Help you in the interpretation of various models (mixed, Bayesian, ...)
+- [Fancy Plot (with Posterior Samples) for Bayesian Regressions](https://neuropsychology.github.io/psycho.R/2018/06/03/plot_bayesian_model.html)
+- [How Many Factors to Retain in Factor Analysis](https://neuropsychology.github.io/psycho.R/2018/05/24/n_factors.html)
+- [Beautiful and Powerful Correlation Tables](https://neuropsychology.github.io/psycho.R/2018/05/20/correlation.html)
+- [Format and Interpret Linear Mixed Models](https://neuropsychology.github.io/psycho.R/2018/05/10/interpret_mixed_models.html)
+- [How to do Repeated Measures ANOVAs](https://neuropsychology.github.io/psycho.R/2018/05/01/repeated_measure_anovas.html)
+- [Standardize (Z-score) a dataframe](https://neuropsychology.github.io/psycho.R/2018/03/29/standardize.html)
+- [Compute Signal Detection Theory Indices](https://neuropsychology.github.io/psycho.R/2018/03/29/SDT.html)
 
 
 

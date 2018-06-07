@@ -19,6 +19,14 @@ Analyze objects. See the documentation for your object's class:
  \item{\link[=analyze.glmerMod]{analyze.glmerMod}}
  \item{\link[=analyze.lm]{analyze.lm}}
  }
+ #' \itemize{
+ \item{\link[=analyze.htest]{analyze.htest}}
+ \item{\link[=analyze.aov]{analyze.aov}}
+ }
+\itemize{
+ \item{\link[=analyze.fa]{analyze.fa}}
+ \item{\link[=analyze.fa]{analyze.lavaan}}
+ }
 }
 \author{
 \href{https://dominiquemakowski.github.io/}{Dominique Makowski}

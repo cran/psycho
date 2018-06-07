@@ -22,11 +22,16 @@
 #' @export
 hdi <- function(x, prob = .95) {
 
+  # From CI to prob if necessary
+  if (prob > 1 & prob <= 100) {
+    prob <- prob / 100
+  }
+
   # If x is a matrix
   if (ncol(as.matrix(x)) > 1) {
     HDImin <- c()
     HDImax <- c()
-    for (col in 1:ncol(x)) {
+    for (col in seq_len(ncol(x))) {
       HDI <- .hdi(x[, col], prob = prob)
       HDImin <- c(HDImin, HDI[1])
       HDImax <- c(HDImax, HDI[2])
