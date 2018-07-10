@@ -1,19 +1,112 @@
+#' Standardize.
+#'
+#' Standardize objects. See the documentation for your object's class:
+#' \itemize{
+#' \item{\link[=standardize.numeric]{standardize.numeric}}
+#' \item{\link[=standardize.data.frame]{standardize.data.frame}}
+#' \item{\link[=standardize.stanreg]{standardize.stanreg}}
+#' \item{\link[=standardize.lm]{standardize.lm}}
+#' \item{\link[=standardize.glm]{standardize.glm}}
+#'  }
+#'
+#' @param x Object.
+#' @param ... Arguments passed to or from other methods.
+#'
+#' @author \href{https://dominiquemakowski.github.io/}{Dominique Makowski}
+#'
+#' @export
+standardize <- function(x, ...) {
+  UseMethod("standardize")
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #' Standardize (scale and reduce) numeric variables.
 #'
-#' Select numeric variables and standardize (Z-score, "normalize") them.
+#' Standardize (Z-score, "normalize") a vector.
 #'
-#' @param df Dataframe.
+#' @param x Numeric vector.
+#' @param normalize Will perform a normalization instead of a standardization. This scales all numeric variables in the range 0 - 1.
+#' @param ... Arguments passed to or from other methods.
+#'
+#' @examples
+#' standardize(x=c(1, 4, 6, 2))
+#' standardize(x=c(1, 4, 6, 2), normalize=TRUE)
+#'
+#'
+#' @author \href{https://dominiquemakowski.github.io/}{Dominique Makowski}
+#'
+#'
+#' @export
+standardize.numeric <- function(x, normalize=FALSE, ...) {
+  if (all(is.na(x))) {
+    return(x)
+  }
+
+  if (normalize == FALSE) {
+    return(as.vector(scale(x, ...)))
+  } else {
+    return(as.vector((x - min(x, na.rm = TRUE)) / diff(range(x, na.rm = TRUE), na.rm = TRUE)))
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#' Standardize (scale and reduce) Dataframe.
+#'
+#' Selects numeric variables and standardize (Z-score, "normalize") them.
+#'
+#' @param x Dataframe.
 #' @param subset Character or list of characters of column names to be
 #' standardized.
 #' @param except Character or list of characters of column names to be excluded
 #' from standardization.
+#' @param normalize Will perform a normalization instead of a standardization. This scales all numeric variables in the range 0 - 1.
+#' @param ... Arguments passed to or from other methods.
 #'
 #' @return Dataframe.
 #'
 #' @examples
+#' \dontrun{
 #' df <- data.frame(
-#'   Participant = as.factor(rep(1:50,each=2)),
-#'   Condition = base::rep_len(c("A", "B"), 100),
+#'   Participant = as.factor(rep(1:25,each=4)),
+#'   Condition = base::rep_len(c("A", "B", "C", "D"), 100),
 #'   V1 = rnorm(100, 30, .2),
 #'   V2 = runif(100, 3, 5),
 #'   V3 = rnorm(100, 100, 10)
@@ -24,7 +117,13 @@
 #' dfZ <- standardize(df, except=c("V1", "V2"))
 #' dfZ <- standardize(df, subset="V3")
 #' dfZ <- standardize(df, subset=c("V1", "V2"))
+#' dfZ <- standardize(df, normalize=TRUE)
 #'
+#' # Respects grouping
+#' dfZ <- df %>%
+#'   dplyr::group_by(Participant) %>%
+#'   standardize(df)
+#' }
 #'
 #' @author \href{https://dominiquemakowski.github.io/}{Dominique Makowski}
 #'
@@ -32,12 +131,35 @@
 #' @importFrom purrr keep discard
 #' @import dplyr
 #' @export
-standardize <- function(df, subset=NULL, except=NULL) {
-
-  # If vector
-  if (ncol(as.matrix(df)) == 1) {
-    return(as.vector(scale(df)))
+standardize.data.frame <- function(x, subset=NULL, except=NULL, normalize=FALSE, ...) {
+  if (inherits(x, "grouped_df")) {
+    dfZ <- x %>% dplyr::do_(".standardize_df(., subset=subset, except=except, normalize=normalize, ...)")
+  } else {
+    dfZ <- .standardize_df(x, subset = subset, except = except, normalize = normalize, ...)
   }
+
+  return(dfZ)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#' @keywords internal
+.standardize_df <- function(x, subset=NULL, except=NULL, normalize=FALSE, ...) {
+  df <- x
 
   # Variable order
   var_order <- names(df)
@@ -66,7 +188,7 @@ standardize <- function(df, subset=NULL, except=NULL) {
   dfnum <- purrr::keep(df, is.numeric)
 
   # Scale
-  dfnum <- as.data.frame(scale(dfnum))
+  dfnum <- as.data.frame(sapply(dfnum, standardize, normalize = normalize))
 
   # Add non-numerics
   if (is.null(ncol(dfother))) {
@@ -85,3 +207,149 @@ standardize <- function(df, subset=NULL, except=NULL) {
 
   return(df)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+#' Standardize Posteriors.
+#'
+#' Compute standardized posteriors from which to get standardized coefficients.
+#'
+#' @param x A stanreg model.
+#' @param method "posterior" (default, based on estimated SD) or "sample" (based on the sample SD).
+#' @param ... Arguments passed to or from other methods.
+#'
+#' @examples
+#' \dontrun{
+#' library(psycho)
+#' library(rstanarm)
+#'
+#' data <- attitude
+#' fit <- rstanarm::stan_glm(rating ~ advance + privileges, data=data)
+#'
+#' posteriors <- standardize(fit)
+#'
+#' }
+#'
+#' @author \href{https://github.com/jgabry}{Jonah Gabry}, \href{https://github.com/bgoodri}{bgoodri}
+#' @seealso https://github.com/stan-dev/rstanarm/issues/298
+#' @export
+standardize.stanreg <- function(x, method="posterior", ...) {
+  fit <- x
+
+  if (method == "sample") {
+    # By jgabry
+    predictors <- all.vars(as.formula(fit$formula))
+    outcome <- predictors[[1]]
+    X <- as.matrix(model.matrix(fit)[, -1]) # -1 to drop column of 1s for intercept
+    sd_X_over_sd_y <- apply(X, 2, sd) / sd(fit$data[[outcome]])
+    beta <- as.matrix(fit, pars = colnames(X)) # posterior distribution of regression coefficients
+    posteriors_std <- sweep(beta, 2, sd_X_over_sd_y, "*") # multiply each row of b by sd_X_over_sd_y
+  } else {
+    # By bgoordi
+    X <- model.matrix(fit)
+    sd_X <- apply(X, MARGIN = 2, FUN = sd)[-1]
+    sd_Y <- apply(posterior_predict(fit), MARGIN = 1, FUN = sd)
+    beta <- as.matrix(fit)[, 2:ncol(X), drop = FALSE]
+    posteriors_std <- sweep(
+      sweep(beta, MARGIN = 2, STATS = sd_X, FUN = `*`),
+      MARGIN = 1, STATS = sd_Y, FUN = `/`
+    )
+  }
+
+  return(posteriors_std)
+}
+
+
+
+
+
+
+
+#' Standardize Coefficients.
+#'
+#' Compute standardized coefficients.
+#'
+#' @param x A linear model.
+#' @param method The standardization method. Can be "agresti".
+#' @param ... Arguments passed to or from other methods.
+#'
+#' @examples
+#' \dontrun{
+#' library(psycho)
+#' fit <- glm(Sex ~ Adjusting, data=psycho::affective, family="binomial")
+#' fit <- lme4::glmer(Sex ~ Adjusting + (1|Sex), data=psycho::affective, family="binomial")
+#'
+#' standardize(fit)
+#'
+#' }
+#'
+#' @author Kamil Barton
+#' @importFrom stats model.frame model.response model.matrix
+#'
+#' @seealso https://think-lab.github.io/d/205/
+#'
+#' @export
+standardize.glm <- function(x, method="agresti", ...) {
+  fit <- x
+
+  # agresti method
+  coefs <- MuMIn::coefTable(fit)[, 1:2]
+  X <- as.matrix(model.matrix(fit)[, -1]) # -1 to drop column of 1s for intercept
+  sd_X <- sd(X, na.rm = TRUE)
+  coefs <- coefs * sd_X
+
+  coefs <- as.data.frame(coefs)
+  names(coefs) <- c("Coef.std", "SE.std")
+  return(coefs)
+}
+
+#' @export
+standardize.glmerMod <- standardize.glm
+
+
+
+#' Standardize Coefficients.
+#'
+#' Compute standardized coefficients.
+#'
+#' @param x A linear model.
+#' @param partial_SD Use partial SD.
+#' @param ... Arguments passed to or from other methods.
+#'
+#' @examples
+#' \dontrun{
+#' library(psycho)
+#' fit <- lm(Adjusting ~ Tolerating, data=psycho::affective)
+#' fit <- lmerTest::lmer(Sepal.Length ~ Sepal.Width + (1|Species), data=iris)
+#'
+#' standardize(fit)
+#'
+#' }
+#'
+#' @author Kamil Barton
+#' @importFrom stats model.frame model.response model.matrix
+#'
+#' @export
+standardize.lm <- function(x, partial_SD=TRUE, ...) {
+  fit <- x
+
+  coefs <- MuMIn::std.coef(fit, partial.sd = partial_SD)[, 1:2]
+
+  coefs <- as.data.frame(coefs)
+  names(coefs) <- c("Coef.std", "SE.std")
+  return(coefs)
+}
+
+
+#' @export
+standardize.lmerMod <- standardize.lm

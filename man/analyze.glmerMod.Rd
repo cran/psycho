@@ -4,10 +4,14 @@
 \alias{analyze.glmerMod}
 \title{Analyze glmerMod objects.}
 \usage{
-\method{analyze}{glmerMod}(x, ...)
+\method{analyze}{glmerMod}(x, CI = 95, effsize_rules = "cohen1988", ...)
 }
 \arguments{
 \item{x}{merModLmerTest object.}
+
+\item{CI}{Bootsrapped confidence interval bounds (slow). Set to NULL turn off their computation.}
+
+\item{effsize_rules}{Grid for effect size interpretation. See \link[=interpret_odds]{interpret_odds}.}
 
 \item{...}{Arguments passed to or from other methods.}
 }
@@ -20,12 +24,18 @@ Analyze glmerMod objects.
 \examples{
 library(psycho)
 library(lme4)
-fit <- lme4::glmer(vs ~ mpg + (1|cyl), data=mtcars, family="binomial")
+
+fit <- lme4::glmer(vs ~ wt + (1|gear), data=mtcars, family="binomial")
 
 results <- analyze(fit)
 summary(results)
 print(results)
 
+
+
+}
+\references{
+Nakagawa, S., & Schielzeth, H. (2013). A general and simple method for obtaining R2 from generalized linear mixed-effects models. Methods in Ecology and Evolution, 4(2), 133-142.
 }
 \author{
 \href{https://dominiquemakowski.github.io/}{Dominique Makowski}
