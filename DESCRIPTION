@@ -2,17 +2,19 @@ Package: psycho
 Type: Package
 Title: Efficient and Publishing-Oriented Workflow for Psychological
         Science
-Version: 0.3.4
+Version: 0.3.6
 Authors@R: c(
     person("Dominique", 
         "Makowski", 
         email = "dom.makowski@gmail.com",
         role = c("aut", "cre", "cph"), 
         comment = c(ORCID = "0000-0001-5375-9967")),
+    person("Hugo",
+        "Najberg",
+        role = "ctb"),
     person("Viliam",
         "Simko",
-        role = "ctb",
-        email = "viliam.simko@gmail.com"),
+        role = "ctb"),
     person("Sasha", 
         "Epskamp", 
         role = "rev",
@@ -27,21 +29,22 @@ Description: The main goal of the psycho package is to provide tools for psychol
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 Depends: R (>= 3.4.0)
 Imports: methods, dplyr, ggplot2, tidyr, stringr, purrr, psych, MASS,
         nFactors, qgraph, ppcor, ggcorrplot, rstanarm, rstantools,
         MuMIn, lme4, lmerTest, coda, emmeans (>= 1.2.2), broom, tibble,
-        DescTools, pbkrtest, BayesFactor (>= 0.9.1), scales, loo (>=
-        2.0.0), lavaan
+        DescTools, BayesFactor (>= 0.9.1), scales, loo (>= 2.0.0),
+        lavaan
 Suggests: knitr, rmarkdown, testthat, covr, plotly, GPArotation
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2018-07-13 10:55:50 UTC; DomM
+Packaged: 2018-08-29 14:05:57 UTC; Dom
 Author: Dominique Makowski [aut, cre, cph]
     (<https://orcid.org/0000-0001-5375-9967>),
+  Hugo Najberg [ctb],
   Viliam Simko [ctb],
   Sasha Epskamp [rev] (Sasha reviewed the package for JOSS, see
     https://github.com/openjournals/joss-reviews/issues/470)
 Repository: CRAN
-Date/Publication: 2018-07-13 14:00:02 UTC
+Date/Publication: 2018-08-30 05:20:03 UTC

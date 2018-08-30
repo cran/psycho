@@ -7,26 +7,26 @@
 get_info(x, ...)
 }
 \arguments{
-\item{x}{Object.}
+\item{x}{object.}
 
 \item{...}{Arguments passed to or from other methods.}
 }
+\value{
+output
+}
 \description{
-Get information about objects. See the documentation for your object's class:
-\itemize{
- \item{\link[=analyze.lmerModLmerTest]{analyze.merModLmerTest}}
- \item{\link[=analyze.glmerMod]{analyze.glmerMod}}
- \item{\link[=analyze.lm]{analyze.lm}}
- \item{\link[=analyze.lm]{analyze.stanreg}}
- }
- \itemize{
- \item{\link[=analyze.htest]{analyze.htest}}
- \item{\link[=analyze.aov]{analyze.aov}}
- }
-\itemize{
- \item{\link[=analyze.fa]{analyze.fa}}
- \item{\link[=analyze.fa]{analyze.lavaan}}
- }
+Get information about models.
+}
+\examples{
+library(psycho)
+library(lme4)
+
+fit <- lme4::glmer(vs ~ wt + (1|gear), data=mtcars, family="binomial")
+
+info <- get_info(fit)
+info
+
+
 }
 \author{
 \href{https://dominiquemakowski.github.io/}{Dominique Makowski}
