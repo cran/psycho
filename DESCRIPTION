@@ -2,7 +2,7 @@ Package: psycho
 Type: Package
 Title: Efficient and Publishing-Oriented Workflow for Psychological
         Science
-Version: 0.3.6
+Version: 0.3.7
 Authors@R: c(
     person("Dominique", 
         "Makowski", 
@@ -30,7 +30,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.0
-Depends: R (>= 3.4.0)
+Depends: R (>= 3.5.0)
 Imports: methods, dplyr, ggplot2, tidyr, stringr, purrr, psych, MASS,
         nFactors, qgraph, ppcor, ggcorrplot, rstanarm, rstantools,
         MuMIn, lme4, lmerTest, coda, emmeans (>= 1.2.2), broom, tibble,
@@ -39,7 +39,7 @@ Imports: methods, dplyr, ggplot2, tidyr, stringr, purrr, psych, MASS,
 Suggests: knitr, rmarkdown, testthat, covr, plotly, GPArotation
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2018-08-29 14:05:57 UTC; Dom
+Packaged: 2018-09-13 08:51:40 UTC; Dom
 Author: Dominique Makowski [aut, cre, cph]
     (<https://orcid.org/0000-0001-5375-9967>),
   Hugo Najberg [ctb],
@@ -47,4 +47,4 @@ Author: Dominique Makowski [aut, cre, cph]
   Sasha Epskamp [rev] (Sasha reviewed the package for JOSS, see
     https://github.com/openjournals/joss-reviews/issues/470)
 Repository: CRAN
-Date/Publication: 2018-08-30 05:20:03 UTC
+Date/Publication: 2018-09-13 10:20:03 UTC

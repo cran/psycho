@@ -1,4 +1,4 @@
-899eb67ccde9ea1e5abdd7056cfe481b *DESCRIPTION
+1e20a8f7002a2382a8bc802dd05d036f *DESCRIPTION
 1dc65d0817677547c20b27c8ccb8d7c4 *LICENSE
 92457261d00279e34aa741f82f4833fd *NAMESPACE
 e19c6e462612d71e63b254199edacd8b *NEWS.md
@@ -20,7 +20,7 @@ c1d71b4d6315ca1252c93277eef5e411 *R/correlation.R
 16db265d83ab9a1e69793f31e30d0c87 *R/crawford.test.R
 b69f3f42b24c2ebf908d86bac3e1c648 *R/crawford_dissociation.test.R
 48c1b0f57ddf26791bd1c2894acb44f4 *R/create_intervals.R
-4fff3cb4de260523368db4aec69b32be *R/dprime.R
+e6e3215e81ef90401c251f2631c912a4 *R/dprime.R
 c51928dbb5cc58f0459f3248327cb63d *R/emotion.R
 1c84c9ffef7e994a74c9e6e8dc84add7 *R/find_best_model.R
 cc4ba8b5a336140c849960a05182c8f9 *R/find_best_model.lmerModLmerTest.R
@@ -80,10 +80,10 @@ b98e7db0014c99f4cd03c7acffefe6ce *data/emotion.rda
 8d767bf46f19bf866a60f37a0d2ddd12 *inst/CITATION
 4904df8182d426b0a8829764a8c1064c *inst/doc/bayesian.R
 1390d14466bb0055192fd3fd934b175d *inst/doc/bayesian.Rmd
-b15e026edff68bd907a192a58d263d80 *inst/doc/bayesian.html
+7b54021bab87d59fc91fd551d0a862ee *inst/doc/bayesian.html
 7a8a0de0320f2d4aa931595a5f05e8ae *inst/doc/overview.R
 5b11300acaa4d8300d307e70b7722995 *inst/doc/overview.Rmd
-a4c3cfa68096260d241988781a937d31 *inst/doc/overview.html
+7be718258207001ceb3448b0dd06dbf6 *inst/doc/overview.html
 7b280ab80fdf79d5eabc53a8dce59994 *man/HDI.Rd
 c3c8bccc349f64bacc4a813c3871ad21 *man/HDImax.Rd
 d0e51a4c079a1f2e36de28231c4c0bf3 *man/HDImin.Rd
@@ -110,7 +110,7 @@ ed9cef20a24fd48720b9f70a8dde25fc *man/assess.Rd
 47325b67338c6e4601a92a890b5ba6fe *man/crawford.test.freq.Rd
 35470d5b1cd735e37fc2c577b9018bc4 *man/crawford_dissociation.test.Rd
 9213f049f7f43a8d6e55066088902f61 *man/create_intervals.Rd
-9af1dcd33b1053822817dca87d6db145 *man/dprime.Rd
+47aa4e23c589162cd412d3235d86ad62 *man/dprime.Rd
 43065cb54ce4443584877e1f1730a1cf *man/emotion.Rd
 e29b7448adb8382e4cbec0aca3dc25a2 *man/find_best_model.Rd
 67d286d8d726b7d0c9de6ec0d0226647 *man/find_best_model.lmerModLmerTest.Rd
@@ -207,7 +207,7 @@ a21da4c6e9ee86cca78f82cfeb809448 *tests/testthat/test-correlation.R
 d6916077bbdf18d32641f90e36f398f3 *tests/testthat/test-crawford.test.R
 830544d91035abd49f2d2076b911b28d *tests/testthat/test-crawford_dissociation.test.R
 ba45036105bf67e1cb85434471a2437b *tests/testthat/test-create_intervals.R
-1e3138c19e1c84493c563ef15ca9c3fa *tests/testthat/test-dprime.R
+b4b0150b9bfe21a48d43e8b428f39d2e *tests/testthat/test-dprime.R
 96e46978b97eb48732d1bab9423d57a0 *tests/testthat/test-find_best_model.stanreg.R
 572d60861301adaefe7c29902733acd2 *tests/testthat/test-find_combinations.formula.R
 9f1fb9cd36f9aedf38b1251f919f3b92 *tests/testthat/test-find_matching_string.R
