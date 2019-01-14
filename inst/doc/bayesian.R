@@ -105,23 +105,21 @@ results <- psycho::analyze(fit)
 # We can extract a formatted summary table
 print(results)
 
-## ---- message=FALSE, results="hide"--------------------------------------
-contrasts <- psycho::get_contrasts(fit, "Salary")
-
 ## ----echo=T, message=FALSE, warning=FALSE, results='hide'----------------
-contrasts$means
+psycho::get_means(fit)
 
 ## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
-kable(contrasts$means, digits=2)
+kable(psycho::get_means(fit), digits=2)
 
 ## ----echo=T, message=FALSE, warning=FALSE, results='hide'----------------
-contrasts$contrasts
+psycho::get_contrasts(fit)
 
 ## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
-kable(contrasts$contrasts, digits=2)
+kable(psycho::get_contrasts(fit), digits=2)
 
 ## ---- fig.width=7, fig.height=4.5, eval = TRUE, results='markup', fig.align='center', comment=NA----
-ggplot(contrasts$means, aes(x=Level, y=Median, group=1)) +
+psycho::get_means(fit) %>% 
+  ggplot(aes(x=Level, y=Median, group=1)) +
   geom_line() +
   geom_pointrange(aes(ymin=CI_lower, ymax=CI_higher)) +
   ylab("Life Satisfaction") +
@@ -226,10 +224,6 @@ ggplot(predicted_linear, aes(x=Age, y=Concealing_Median)) +
                   ymax=Concealing_CI_95), 
               alpha=0.1)
 
-## ---- message=FALSE, results="hide", warning=FALSE, eval=FALSE-----------
-#  # Let's fit our model (it takes more time)
-#  fit <- rstanarm::stan_lmer(Concealing ~ poly(Age, 2, raw=TRUE) + (1|Salary), data=df)
-
 ## ----message=FALSE, warning=FALSE, include=FALSE, results="hide"---------
 # Let's fit our model (it takes more time)
 fit <- rstanarm::stan_lmer(Concealing ~ poly(Age, 2, raw=TRUE) + (1|Salary), data=df, iter=500, chains=2)
@@ -242,7 +236,7 @@ results <- psycho::analyze(fit)
 summary(results, round = 2)
 
 ## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
-kable(summary(results, round = 2))
+knitr::kable(summary(results, round = 2))
 
 ## ----echo=T, message=FALSE, warning=FALSE--------------------------------
 refgrid <- df %>% 
