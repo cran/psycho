@@ -2,7 +2,7 @@ Package: psycho
 Type: Package
 Title: Efficient and Publishing-Oriented Workflow for Psychological
         Science
-Version: 0.4.0
+Version: 0.4.9
 Authors@R: c(
     person("Dominique", 
         "Makowski", 
@@ -39,7 +39,7 @@ Imports: methods, dplyr, ggplot2, tidyr, stringr, purrr, psych, MASS,
 Suggests: knitr, rmarkdown, testthat, covr, plotly, GPArotation
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2019-01-13 09:15:34 UTC; Dom
+Packaged: 2019-03-30 16:54:10 UTC; Dom
 Author: Dominique Makowski [aut, cre, cph]
     (<https://orcid.org/0000-0001-5375-9967>),
   Hugo Najberg [ctb],
@@ -47,4 +47,4 @@ Author: Dominique Makowski [aut, cre, cph]
   Sasha Epskamp [rev] (Sasha reviewed the package for JOSS, see
     https://github.com/openjournals/joss-reviews/issues/470)
 Repository: CRAN
-Date/Publication: 2019-01-14 11:50:03 UTC
+Date/Publication: 2019-03-31 14:10:03 UTC
