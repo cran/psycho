@@ -5048,6 +5048,7 @@ dprime <- function(n_hit, n_fa, n_miss = NULL, n_cr = NULL, n_targets = NULL, n_
   }
 
 
+
   # Parametric Indices ------------------------------------------------------
 
 
@@ -5092,6 +5093,11 @@ dprime <- function(n_hit, n_fa, n_miss = NULL, n_cr = NULL, n_targets = NULL, n_
   }
 
   # Non-Parametric Indices ------------------------------------------------------
+
+  if(any(n_distractors == 0)){
+    warning("Several rows have 0 distractors. Please remove these rows to compute non-parametric indices.")
+    return(list(dprime = dprime, beta = beta, aprime = NA, bppd = NA, c = c))
+  }
 
   # Ratios
   hit_rate <- n_hit / n_targets
