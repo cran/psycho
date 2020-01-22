@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <meta name="author" content="Dominique Makowski" />
 
-<meta name="date" content="2019-06-19" />
+<meta name="date" content="2020-01-22" />
 
 <title>psycho for R</title>
 
@@ -96,7 +96,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -127,9 +127,6 @@ padding-right: 2em;
 font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 font-size: 14px;
 line-height: 1.35;
-}
-#header {
-text-align: center;
 }
 #TOC {
 clear: both;
@@ -298,7 +295,8 @@ code > span.st { color: #d14; }
 code > span.co { color: #888888; font-style: italic; } 
 code > span.ot { color: #007020; } 
 code > span.al { color: #ff0000; font-weight: bold; } 
-code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
 
 
@@ -313,7 +311,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">psycho for R</h1>
 <h4 class="author">Dominique Makowski</h4>
-<h4 class="date">2019-06-19</h4>
+<h4 class="date">2020-01-22</h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
 <p>Psycho is an R package that aims at providing tools for psychologists, neuropsychologists and neuroscientists, to transform statistical outputs into something readable that can be, almost directly, copied and pasted into a report. It also implements various functions useful in psychological science, such as correlation matrices, assessment plot creation or normalization. The package revolves around the psychobject. Main functions from the package return this type, and the <code>analyze()</code> function transforms other R objects into psychobjects. Four functions can then be applied on a psychobject: <code>summary()</code>, <code>print()</code>, <code>plot()</code> and <code>values()</code>. Contrary to many other packages which goal is to produce statistical analyzes, <code>psycho</code> aims at filling the gap between statistical R outputs and statistical report writing, with a focus on APA formatting guidelines, to enhance the standardization of results reporting. Complex outputs, such as those of Bayesian and frequentist mixed models, are automatically transformed into readable text, tables, and plots that illustrate the effects. Thus, the results can easily be incorporated into shareable reports and publications, promoting data exploration, saving time and preventing errors for better, reproducible, science.</p>
@@ -370,14 +368,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <p>Try installing the missing packages (<code>install.packages(&quot;thenameofapackage&quot;)</code>) and then, install psycho again (sometimes this can be done several times).</p>
 <p>Anyway, once you have <code>psycho</code>, just put this at the beginning of every script:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">library</span>(psycho)</a></code></pre></div>
-<pre><code>## Registered S3 method overwritten by &#39;MuMIn&#39;:
-##   method         from
-##   predict.merMod lme4</code></pre>
-<pre><code>## Registered S3 methods overwritten by &#39;huge&#39;:
-##   method    from   
-##   plot.sim  BDgraph
-##   print.sim BDgraph</code></pre>
-<pre><code>## message: psycho&#39;s `analyze()` is deprecated in favour of the report package. Check it out at https://github.com/easystats/report</code></pre>
+<pre><code>## Note: Many functions of the &#39;psycho&#39; package have been (improved and) moved to other packages of the new &#39;easystats&#39; collection (https://github.com/easystats). If you don&#39;t find where a function is gone, please open an issue at: https://github.com/easystats/easystats/issues</code></pre>
 <!-- ![](https://github.com/neuropsychology/psycho.R/blob/master/vignettes/images/workflow.PNG) -->
 <hr />
 </div>
@@ -474,6 +465,9 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <p>Improve this vignette by modifying <a href="https://github.com/neuropsychology/psycho.R/blob/master/vignettes/overview.Rmd">this</a> file!</p>
 </div>
 
+
+
+<!-- code folding -->
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
