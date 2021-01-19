@@ -2,7 +2,7 @@ Package: psycho
 Type: Package
 Title: Efficient and Publishing-Oriented Workflow for Psychological
         Science
-Version: 0.5.0
+Version: 0.6.1
 Authors@R: c(
     person("Dominique", 
         "Makowski", 
@@ -29,14 +29,14 @@ Description: The main goal of the psycho package is to provide tools for psychol
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.1
 Depends: R (>= 3.5.0)
-Imports: methods, stats, scales, utils, dplyr, tidyr, stringr, ggplot2,
-        insight, bayestestR, parameters, performance, effectsize
-Suggests: knitr, rmarkdown, testthat, covr, plotly, GPArotation
+Imports: stats, scales, utils, dplyr, stringr, ggplot2, insight,
+        bayestestR, parameters, effectsize
+Suggests: knitr, rmarkdown, testthat, covr, GPArotation
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2020-01-22 03:24:34 UTC; Dom
+Packaged: 2021-01-19 01:55:59 UTC; domma
 Author: Dominique Makowski [aut, cre, cph]
     (<https://orcid.org/0000-0001-5375-9967>),
   Hugo Najberg [ctb],
@@ -44,4 +44,4 @@ Author: Dominique Makowski [aut, cre, cph]
   Sasha Epskamp [rev] (Sasha reviewed the package for JOSS, see
     https://github.com/openjournals/joss-reviews/issues/470)
 Repository: CRAN
-Date/Publication: 2020-01-22 11:30:02 UTC
+Date/Publication: 2021-01-19 06:40:10 UTC
