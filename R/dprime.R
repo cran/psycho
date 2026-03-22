@@ -13,13 +13,11 @@
 #' @return Calculates the d', the beta, the A' and the B''D based on the signal detection theory (SRT). See Pallier (2002) for the algorithms.
 #'
 #' Returns a list containing the following indices:
-#' \itemize{
-#'  \item{\strong{dprime (d')}: }{The sensitivity. Reflects the distance between the two distributions: signal, and signal+noise and corresponds to the Z value of the hit-rate minus that of the false-alarm rate.}
-#'  \item{\strong{beta}: }{The bias (criterion). The value for beta is the ratio of the normal density functions at the criterion of the Z values used in the computation of d'. This reflects an observer's bias to say 'yes' or 'no' with the unbiased observer having a value around 1.0. As the bias to say 'yes' increases (liberal), resulting in a higher hit-rate and false-alarm-rate, beta approaches 0.0. As the bias to say 'no' increases (conservative), resulting in a lower hit-rate and false-alarm rate, beta increases over 1.0 on an open-ended scale.}
-#'  \item{\strong{c}: }{Another index of bias. the number of standard deviations from the midpoint between these two distributions, i.e., a measure on a continuum from "conservative" to "liberal".}
-#'  \item{\strong{aprime (A')}: }{Non-parametric estimate of discriminability. An A' near 1.0 indicates good discriminability, while a value near 0.5 means chance performance.}
-#'  \item{\strong{bppd (B''D)}: }{Non-parametric estimate of bias. A B''D equal to 0.0 indicates no bias, positive numbers represent conservative bias (i.e., a tendency to answer 'no'), negative numbers represent liberal bias (i.e. a tendency to answer 'yes'). The maximum absolute value is 1.0.}
-#'  }
+#' \item{\strong{dprime (d')}}{The sensitivity. Reflects the distance between the two distributions: signal, and signal+noise and corresponds to the Z value of the hit-rate minus that of the false-alarm rate.}
+#' \item{\strong{beta}}{The bias (criterion). The value for beta is the ratio of the normal density functions at the criterion of the Z values used in the computation of d'. This reflects an observer's bias to say 'yes' or 'no' with the unbiased observer having a value around 1.0. As the bias to say 'yes' increases (liberal), resulting in a higher hit-rate and false-alarm-rate, beta approaches 0.0. As the bias to say 'no' increases (conservative), resulting in a lower hit-rate and false-alarm rate, beta increases over 1.0 on an open-ended scale.}
+#' \item{\strong{c}}{Another index of bias. the number of standard deviations from the midpoint between these two distributions, i.e., a measure on a continuum from "conservative" to "liberal".}
+#' \item{\strong{aprime (A')}}{Non-parametric estimate of discriminability. An A' near 1.0 indicates good discriminability, while a value near 0.5 means chance performance.}
+#' \item{\strong{bppd (B''D)}}{Non-parametric estimate of bias. A B''D equal to 0.0 indicates no bias, positive numbers represent conservative bias (i.e., a tendency to answer 'no'), negative numbers represent liberal bias (i.e. a tendency to answer 'yes'). The maximum absolute value is 1.0.}
 #'
 #'
 #' Note that for d' and beta, adjustement for extreme values are made following the recommandations of Hautus (1995).
@@ -52,8 +50,15 @@
 #'
 #' @importFrom stats qnorm
 #' @export
-dprime <- function(n_hit, n_fa, n_miss = NULL, n_cr = NULL, n_targets = NULL, n_distractors = NULL, adjusted = TRUE) {
-
+dprime <- function(
+  n_hit,
+  n_fa,
+  n_miss = NULL,
+  n_cr = NULL,
+  n_targets = NULL,
+  n_distractors = NULL,
+  adjusted = TRUE
+) {
   # Initialize
   if (is.null(n_targets)) {
     n_targets <- n_hit + n_miss
@@ -63,22 +68,21 @@ dprime <- function(n_hit, n_fa, n_miss = NULL, n_cr = NULL, n_targets = NULL, n_
     n_distractors <- n_fa + n_cr
   }
 
-
-
   # Parametric Indices ------------------------------------------------------
-
 
   if (adjusted == TRUE) {
     if (is.null(n_miss) | is.null(n_cr)) {
-      warning("Please provide n_miss and n_cr in order to compute adjusted ratios. Computing indices anyway with non-adjusted ratios...")
+      warning(
+        "Please provide n_miss and n_cr in order to compute adjusted ratios. Computing indices anyway with non-adjusted ratios..."
+      )
 
       # Non-Adjusted ratios
       hit_rate_adjusted <- n_hit / n_targets
       fa_rate_adjusted <- n_fa / n_distractors
     } else {
       # Adjusted ratios
-      hit_rate_adjusted <- (n_hit + 0.5)/(n_hit + n_miss + 1)
-      fa_rate_adjusted <- (n_fa + 0.5)/(n_fa + n_cr + 1)
+      hit_rate_adjusted <- (n_hit + 0.5) / (n_hit + n_miss + 1)
+      fa_rate_adjusted <- (n_fa + 0.5) / (n_fa + n_cr + 1)
     }
 
     # dprime
@@ -110,8 +114,10 @@ dprime <- function(n_hit, n_fa, n_miss = NULL, n_cr = NULL, n_targets = NULL, n_
 
   # Non-Parametric Indices ------------------------------------------------------
 
-  if(any(n_distractors == 0)){
-    warning("Oops, it seems like tehre are observations with 0 distractors. It's impossible to compute non-parametric indices :(")
+  if (any(n_distractors == 0)) {
+    warning(
+      "Oops, it seems like tehre are observations with 0 distractors. It's impossible to compute non-parametric indices :("
+    )
     return(list(dprime = dprime, beta = beta, aprime = NA, bppd = NA, c = c))
   }
 
@@ -120,8 +126,16 @@ dprime <- function(n_hit, n_fa, n_miss = NULL, n_cr = NULL, n_targets = NULL, n_
   fa_rate <- n_fa / n_distractors
 
   # aprime
-  a <- 1 / 2 + ((hit_rate - fa_rate) * (1 + hit_rate - fa_rate) / (4 * hit_rate * (1 - fa_rate)))
-  b <- 1 / 2 - ((fa_rate - hit_rate) * (1 + fa_rate - hit_rate) / (4 * fa_rate * (1 - hit_rate)))
+  a <- 1 /
+    2 +
+    ((hit_rate - fa_rate) *
+      (1 + hit_rate - fa_rate) /
+      (4 * hit_rate * (1 - fa_rate)))
+  b <- 1 /
+    2 -
+    ((fa_rate - hit_rate) *
+      (1 + fa_rate - hit_rate) /
+      (4 * fa_rate * (1 - hit_rate)))
 
   # Store possible missing values due to absence of targets / distractors
   ok <- !(is.na(a) | is.na(b))
@@ -131,15 +145,22 @@ dprime <- function(n_hit, n_fa, n_miss = NULL, n_cr = NULL, n_targets = NULL, n_
   aprime <- a
 
   # bppd
-  numerator <- (hit_rate[ok] * (1 - hit_rate[ok]) - fa_rate[ok] * (1 - fa_rate[ok]))
-  denominator <- (hit_rate[ok] * (1 - hit_rate[ok]) + fa_rate[ok] * (1 - fa_rate[ok]))
+  numerator <- (hit_rate[ok] *
+    (1 - hit_rate[ok]) -
+    fa_rate[ok] * (1 - fa_rate[ok]))
+  denominator <- (hit_rate[ok] *
+    (1 - hit_rate[ok]) +
+    fa_rate[ok] * (1 - fa_rate[ok]))
   bppd <- numerator / denominator
 
-  numerator <- (fa_rate[ok] * (1 - fa_rate[ok]) - hit_rate[ok] * (1 - hit_rate[ok]))
-  denominator <- (fa_rate[ok] * (1 - fa_rate[ok]) + hit_rate[ok] * (1 - hit_rate[ok]))
+  numerator <- (fa_rate[ok] *
+    (1 - fa_rate[ok]) -
+    hit_rate[ok] * (1 - hit_rate[ok]))
+  denominator <- (fa_rate[ok] *
+    (1 - fa_rate[ok]) +
+    hit_rate[ok] * (1 - hit_rate[ok]))
   bppd_b <- numerator / denominator
   bppd[ok][fa_rate[ok] > hit_rate[ok]] <- bppd_b[ok][fa_rate[ok] > hit_rate[ok]]
-
 
   list(dprime = dprime, beta = beta, aprime = aprime, bppd = bppd, c = c)
 }

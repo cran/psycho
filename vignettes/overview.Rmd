@@ -44,7 +44,7 @@ knitr::include_graphics("images/workflow.PNG")
 - Go here: [https://cran.r-project.org/](https://cran.r-project.org/)
 - Download the last version for your OS
 - Install it
-- Go here: [https://rstudio.com/products/rstudio/download/](https://rstudio.com/products/rstudio/download/)
+- Go here: [https://posit.co/download/rstudio-desktop/](https://posit.co/download/rstudio-desktop/)
 - Download the right version for your OS
 - Install it
 - Start R studio

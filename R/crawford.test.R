@@ -36,20 +36,22 @@
 #' @importFrom scales rescale
 #' @import ggplot2
 #' @export
-crawford.test <- function(patient,
-                          controls = NULL,
-                          mean = NULL,
-                          sd = NULL,
-                          n = NULL,
-                          CI = 95,
-                          treshold = 0.1,
-                          iter = 10000,
-                          color_controls = "#2196F3",
-                          color_CI = "#E91E63",
-                          color_score = "black",
-                          color_size = 2,
-                          alpha_controls = 1,
-                          alpha_CI = 0.8) {
+crawford.test <- function(
+  patient,
+  controls = NULL,
+  mean = NULL,
+  sd = NULL,
+  n = NULL,
+  CI = 95,
+  treshold = 0.1,
+  iter = 10000,
+  color_controls = "#2196F3",
+  color_CI = "#E91E63",
+  color_score = "black",
+  color_size = 2,
+  alpha_controls = 1,
+  alpha_CI = 0.8
+) {
   if (is.null(controls)) {
     # Check if a parameter is null
     if (length(c(mean, sd, n)) != 3) {
@@ -66,9 +68,7 @@ crawford.test <- function(patient,
   }
   degfree <- n - 1
 
-
   # Computation -------------------------------------------------------------
-
 
   pvalues <- c()
   for (i in 1:iter) {
@@ -86,7 +86,6 @@ crawford.test <- function(patient,
     pvalues <- c(pvalues, p)
   }
 
-
   # Point estimates ---------------------------------------------------------
 
   z_score <- (patient - sample_mean) / sample_sd
@@ -98,9 +97,16 @@ crawford.test <- function(patient,
 
   # Text --------------------------------------------------------------------
 
-  p_interpretation <- ifelse(p < treshold, " significantly ", " not significantly ")
-  direction <- ifelse(patient - sample_mean < 0, " lower than ", " higher than ")
-
+  p_interpretation <- ifelse(
+    p < treshold,
+    " significantly ",
+    " not significantly "
+  )
+  direction <- ifelse(
+    patient - sample_mean < 0,
+    " lower than ",
+    " higher than "
+  )
 
   text <- paste0(
     "The Bayesian test for single case assessment (Crawford, Garthwaite, 2007) suggests that the patient's score (Raw = ",
@@ -125,8 +131,6 @@ crawford.test <- function(patient,
     insight::format_ci(ci$CI_low, ci$CI_high, ci = CI / 100),
     ") of the control population."
   )
-
-
 
   # Store values ------------------------------------------------------------
 
@@ -158,7 +162,6 @@ crawford.test <- function(patient,
     controls <- bayestestR::distribution_normal(n, sample_mean, sample_sd)
   }
 
-
   # Plot --------------------------------------------------------------------
   if (patient - sample_mean < 0) {
     uncertainty <- percentile_to_z(pvalues * 100)
@@ -166,22 +169,27 @@ crawford.test <- function(patient,
     uncertainty <- percentile_to_z((1 - pvalues) * 100)
   }
 
-
-
-
   plot <- bayestestR::distribution_normal(length(uncertainty), 0, 1) %>%
     density() %>%
     as.data.frame() %>%
-    mutate_(y = "y/max(y)") %>%
+    mutate(y = .data$y / max(.data$y)) %>%
     mutate(distribution = "Control") %>%
-    rbind(uncertainty %>%
-            density() %>%
-            as.data.frame() %>%
-            mutate_(y = "y/max(y)") %>%
-            mutate(distribution = "Uncertainty")) %>%
-    mutate_(x = "scales::rescale(x, from=c(0, 1), to = c(sample_mean, sample_mean+sample_sd))") %>%
-    ggplot(aes_string(x = "x", ymin = 0, ymax = "y")) +
-    geom_ribbon(aes_string(fill = "distribution", alpha = "distribution")) +
+    rbind(
+      uncertainty %>%
+        density() %>%
+        as.data.frame() %>%
+        mutate(y = .data$y / max(.data$y)) %>%
+        mutate(distribution = "Uncertainty")
+    ) %>%
+    mutate(
+      x = scales::rescale(
+        .data$x,
+        from = c(0, 1),
+        to = c(sample_mean, sample_mean + sample_sd)
+      )
+    ) %>%
+    ggplot(aes(x = .data$x, ymin = 0, ymax = .data$y)) +
+    geom_ribbon(aes(fill = .data$distribution, alpha = .data$distribution)) +
     geom_vline(xintercept = patient, colour = color_score, size = color_size) +
     scale_fill_manual(values = c(color_controls, color_CI)) +
     scale_alpha_manual(values = c(alpha_controls, alpha_CI)) +
@@ -194,20 +202,10 @@ crawford.test <- function(patient,
       axis.text.y = element_blank()
     )
 
-
-
   output <- list(text = text, plot = plot, summary = summary, values = values)
   class(output) <- c("psychobject", "list")
   return(output)
 }
-
-
-
-
-
-
-
-
 
 
 #' Crawford-Howell (1998) frequentist t-test for single-case analysis.
@@ -230,7 +228,8 @@ crawford.test <- function(patient,
 #' @importFrom stats pt sd
 #' @export
 crawford.test.freq <- function(patient, controls) {
-  tval <- (patient - mean(controls)) / (sd(controls) * sqrt((length(controls) + 1) / length(controls)))
+  tval <- (patient - mean(controls)) /
+    (sd(controls) * sqrt((length(controls) + 1) / length(controls)))
 
   degfree <- length(controls) - 1
 
@@ -247,8 +246,11 @@ crawford.test.freq <- function(patient, controls) {
     one_tailed <- ""
   }
 
-
-  p_interpretation <- ifelse(pval < 0.05, " significantly ", " not significantly ")
+  p_interpretation <- ifelse(
+    pval < 0.05,
+    " significantly ",
+    " not significantly "
+  )
   t_interpretation <- ifelse(tval < 0, " lower than ", " higher than ")
 
   text <- paste0(
@@ -282,7 +284,6 @@ crawford.test.freq <- function(patient, controls) {
   )
   summary <- data.frame(t = tval, df = degfree, p = pval)
   plot <- "Not available yet"
-
 
   output <- list(text = text, plot = plot, summary = summary, values = values)
   class(output) <- c("psychobject", "list")
